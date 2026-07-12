@@ -1,539 +1,447 @@
-## Why Sharing Code Was Never the Real Goal
+````markdown
+## Looking at Mobile Development from a Business Perspective
 
-At this point, it might sound like the obvious solution is to share as much code as possible.
+Software engineers often discuss mobile development in terms of technology.
 
-Interestingly, that isn't what the software industry learned over the last decade.
+We compare Kotlin with Swift.
 
-Many cross-platform frameworks promised exactly that:
+Jetpack Compose with SwiftUI.
 
-> "Write once. Run everywhere."
+Gradle with Xcode.
 
-On paper, it sounded perfect.
+MVVM with MVC.
 
-Write a single application.
+Coroutines with Async/Await.
 
-Compile it for multiple platforms.
+These discussions are valuable, but they represent the engineering perspective.
 
-Reduce development cost.
+Businesses see the problem very differently.
 
-Ship features faster.
+A business never says,
 
-In reality, engineering teams discovered that sharing *everything* often introduced a different set of problems.
+> "We need a Kotlin application."
 
-The user experience started feeling less native.
+Instead, it says,
 
-Platform-specific capabilities became harder to access.
+> "We need a mobile application that helps customers solve a problem."
 
-Applications behaved differently from what users expected on each operating system.
+Whether that application is built using Kotlin, Swift, Flutter, or React Native is an implementation detail.
 
-As projects grew larger, maintaining a fully shared UI became increasingly complex.
+The business only cares about delivering a consistent experience to every customer.
 
-Eventually, many engineering teams reached the same conclusion.
+Imagine you're ordering food from your favorite delivery application.
 
-The objective isn't to share **everything**.
+You expect the same behavior whether you're using:
 
-The objective is to share **the right things**.
+- An Android phone
+- An iPhone
+- A tablet
+- A desktop browser
 
-That distinction is one of the most important ideas in Kotlin Multiplatform.
+The restaurant doesn't prepare different meals because you're using a different operating system.
+
+The discount calculation doesn't change.
+
+The payment rules don't change.
+
+The order confirmation doesn't change.
+
+The business remains exactly the same.
+
+So why should the business logic be implemented multiple times?
 
 ---
 
-## Understanding the Layers of a Mobile Application
+## The Anatomy of a Feature
 
-Imagine opening your favorite shopping application.
+Let's take something as simple as user login.
 
-You see:
+Most developers visualize login like this:
 
-- Product images
-- Search bar
-- Shopping cart
-- Checkout button
+```text
+Email
 
-This is the part users interact with.
+Password
 
-But behind every screen lies an entire software system.
+↓
 
-A realistic mobile application looks more like this.
-
-
-                    Mobile Application
-
- ┌─────────────────────────────────────────┐
- │                 UI Layer                │
- │                                         │
- │  Compose • SwiftUI • XML • UIKit        │
- └─────────────────────────────────────────┘
-
- ┌─────────────────────────────────────────┐
- │          Presentation Layer             │
- │                                         │
- │ ViewModel • State • Events              │
- └─────────────────────────────────────────┘
-
- ┌─────────────────────────────────────────┐
- │            Domain Layer                 │
- │                                         │
- │ UseCases • Business Rules               │
- └─────────────────────────────────────────┘
-
- ┌─────────────────────────────────────────┐
- │             Data Layer                  │
- │                                         │
- │ Repository • API • Database             │
- └─────────────────────────────────────────┘
-
- ┌─────────────────────────────────────────┐
- │        Platform Infrastructure          │
- │                                         │
- │ Files • Camera • Bluetooth              │
- └─────────────────────────────────────────┘
+Login Button
 ```
 
-Every layer has different responsibilities.
+That is only what users can see.
 
-Not every layer should be shared.
+Under the hood, login is a workflow involving multiple layers.
 
-Understanding this separation is the key to understanding Kotlin Multiplatform.
+```text
+User taps Login
+
+        │
+
+        ▼
+
+Validate Email
+
+        │
+
+        ▼
+
+Validate Password
+
+        │
+
+        ▼
+
+Create Request Model
+
+        │
+
+        ▼
+
+Call Authentication API
+
+        │
+
+        ▼
+
+Receive Response
+
+        │
+
+        ▼
+
+Parse JSON
+
+        │
+
+        ▼
+
+Store Access Token
+
+        │
+
+        ▼
+
+Update User Session
+
+        │
+
+        ▼
+
+Navigate to Home Screen
+```
+
+Now consider another question.
+
+Which of these operations actually depends on Android?
+
+The answer is surprisingly short.
+
+Only the last step—navigation—belongs exclusively to the Android platform.
+
+Everything before that is pure business behavior.
+
+The same observation applies to iOS.
 
 ---
 
-## Which Layers Actually Depend on the Platform?
+## The Illusion of Platform-Specific Development
 
-Let's examine every layer one by one.
+Many developers assume that building applications for different platforms automatically means writing different software.
 
-### User Interface
+In reality, platforms differ primarily in how users interact with them.
 
-The UI is naturally platform-specific.
+The business itself rarely changes.
 
-Android users expect Material Design.
+Imagine an online shopping application.
 
-iPhone users expect Human Interface Guidelines.
+A customer purchases a laptop.
 
-Buttons look different.
+The platform doesn't influence:
 
-Navigation behaves differently.
-
-Animations feel different.
-
-Even gestures are different.
-
-Trying to force identical user interfaces across platforms often produces an application that feels foreign everywhere.
-
-For this reason, keeping the UI native usually provides the best user experience.
-
----
-
-### Business Rules
-
-Now consider a different example.
-
-A banking application requires passwords containing:
-
-- At least eight characters
-- One uppercase letter
-- One lowercase letter
-- One number
-- One special character
-
-Should Android validate those rules differently from iOS?
-
-Of course not.
-
-The business requirement is identical.
-
-The platform is irrelevant.
-
-The same applies to:
-
-- Discount calculation
-- EMI eligibility
-- Reward points
-- Shipping rules
+- The product price
 - Tax calculation
-- Coupon validation
-- Inventory availability
+- Shipping rules
+- Payment validation
+- Inventory management
+- Coupon eligibility
 
-These are business rules.
+Those rules originate from the business.
 
-Business rules belong to the business—not to Android or iOS.
+Not from Android.
 
----
+Not from iOS.
 
-### Networking
+Not from the web.
 
-Suppose the backend exposes the following endpoint.
+The operating system simply provides another window through which customers access the same business.
 
-```
-POST /login
-```
+This realization is one of the most important shifts in modern software architecture.
 
-Android sends:
+Applications are no longer defined by their platforms.
 
-```json
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-Should iOS send a different request?
-
-No.
-
-The backend expects exactly the same payload.
-
-The response is also identical.
-
-```json
-{
-  "accessToken":"...",
-  "refreshToken":"..."
-}
-```
-
-Networking logic doesn't depend on the platform.
-
-Only the HTTP client implementation changes internally.
-
-The business workflow remains identical.
+They are defined by the business they represent.
 
 ---
 
-### Repository Layer
+## Understanding Business Logic
 
-Repositories coordinate data.
+The phrase *business logic* appears frequently throughout this book.
 
-They decide:
+Before we continue, it's worth understanding exactly what it means.
 
-- Fetch from network
-- Read from cache
-- Store in database
-- Return domain model
+Business logic is every rule that defines how your product behaves.
 
-These decisions don't depend on Android.
+For example, consider an e-commerce application.
 
-They don't depend on iOS.
+Business logic includes:
 
-Repositories are excellent candidates for sharing.
+- A coupon expires after thirty days.
+- Gold members receive free shipping.
+- Orders above ₹999 receive a discount.
+- Maximum purchase quantity is five units.
+- Refunds require order verification.
+- Passwords must contain a special character.
 
----
+Notice something interesting.
 
-### Domain Models
+None of these rules mention Android.
 
-Consider a Product.
+None mention iOS.
 
-```
-Product
+If tomorrow your company launches a desktop application, those rules remain identical.
 
-id
-
-title
-
-price
-
-rating
-
-stock
-
-description
-```
-
-Should Android have different product information than iOS?
-
-Obviously not.
-
-The product exists independently of any operating system.
-
-Domain models represent business concepts.
-
-Business concepts don't change because the application is running on a different device.
+Business logic belongs to the organization—not to the platform.
 
 ---
 
-### Validation
+## Platform Logic
 
-Imagine validating an email address.
+Now let's compare that with platform logic.
 
-Should Android accept
+Platform logic answers questions such as:
 
-```
-john@example.com
-```
+- How do we request camera permission?
+- How do we display a notification?
+- How do we access Bluetooth?
+- How do we open the photo gallery?
+- How do we use Face ID?
+- How do we launch another application?
 
-while iOS rejects it?
+These capabilities exist because the operating system provides them.
 
-That would be disastrous.
+Android and iOS expose different APIs.
 
-Validation must remain consistent across every platform.
+Different permissions.
 
-Sharing validation logic eliminates an entire category of production bugs.
+Different security models.
 
----
+Different lifecycle events.
 
-## The Cost of Duplication
+Trying to force these APIs into a common implementation usually creates unnecessary complexity.
 
-Developers often think duplication means writing more code.
-
-The reality is much more expensive.
-
-Imagine a single business rule.
-
-```
-Password must contain
-one uppercase letter.
-```
-
-In a traditional architecture, that single rule creates multiple responsibilities.
-
-```
-Requirement
-
-      │
-
-      ▼
-
-Android Implementation
-
-      │
-
-Android Unit Tests
-
-      │
-
-Android Code Review
-
-      │
-
-Android Maintenance
-
-────────────────────────────
-
-iOS Implementation
-
-      │
-
-iOS Unit Tests
-
-      │
-
-iOS Code Review
-
-      │
-
-iOS Maintenance
-```
-
-One requirement.
-
-Two implementations.
-
-Two test suites.
-
-Two reviews.
-
-Two maintenance paths.
-
-Now multiply this by hundreds of business rules accumulated over several years.
-
-Suddenly, maintaining consistency becomes one of the biggest engineering challenges in the organization.
+This is why Kotlin Multiplatform intentionally keeps platform APIs separate.
 
 ---
 
-## The Hidden Tax Every Team Pays
-
-Most companies don't realize they're paying this cost.
-
-It doesn't appear on a balance sheet.
-
-It isn't reported by analytics.
-
-Yet every sprint feels its impact.
-
-Consider a simple login enhancement.
-
-Without shared business logic, the timeline often looks like this.
-
-Business Requirement
-
-        │
-
-Android Development
-
-        │
-
-Android Code Review
-
-        │
-
-Android QA
-
-        │
-
-────────────────────────────
-
-iOS Development
-
-        │
-
-iOS Code Review
-
-        │
-
-iOS QA
-
-        │
-
-────────────────────────────
-
-Regression Testing
-
-        │
-
-Release
-```
-
-Every feature passes through two parallel engineering pipelines.
-
-The larger the organization becomes, the more synchronization is required.
-
-Meetings increase.
-
-Documentation increases.
-
-Cross-platform validation increases.
-
-Release coordination becomes increasingly complex.
-
-Engineering velocity gradually slows—not because developers are less productive, but because duplication creates operational overhead.
-
----
-
-## Figure 1.2 — Feature Development Without Shared Business Logic
+## Figure 1.2 — Business Logic vs Platform Logic
 
 **Illustration Specification (Final Book Diagram)**
 
 **Title**
 
-Feature Development Before Kotlin Multiplatform
+Separating Business Logic from Platform Logic
 
-```
-                New Feature
+```text
+                    Mobile Application
 
-                     │
+          ┌──────────────────────────────┐
+          │       Business Logic         │
+          │                              │
+          │ ✔ Authentication             │
+          │ ✔ Validation                 │
+          │ ✔ Pricing                    │
+          │ ✔ Tax Rules                  │
+          │ ✔ Repositories               │
+          │ ✔ Networking                 │
+          └──────────────────────────────┘
 
-        ┌────────────┴────────────┐
+────────────────────────────────────────────────
 
-        ▼                         ▼
+          ┌──────────────────────────────┐
+          │       Platform Logic         │
+          │                              │
+          │ Android Permissions          │
+          │ Camera                       │
+          │ Bluetooth                    │
+          │ Notifications                │
+          │ Widgets                      │
+          │ Lifecycle                    │
+          └──────────────────────────────┘
 
- Android Team               iOS Team
+          iOS
 
-        │                         │
+          Face ID
 
- Design Implementation     Design Implementation
+          Keychain
 
-        │                         │
+          Push Notifications
 
- Business Logic            Business Logic
+          UIKit / SwiftUI
 
-        │                         │
-
- Unit Testing              Unit Testing
-
-        │                         │
-
- Bug Fixes                 Bug Fixes
-
-        │                         │
-
- Release                   Release
+          App Lifecycle
 ```
 
 **Observation**
 
-Every engineering activity is duplicated.
+Business logic belongs to the product.
 
-The organization doesn't build one feature.
+Platform logic belongs to the operating system.
 
-It builds two independent implementations of the same feature.
-
----
-
-## Looking at the Problem Differently
-
-Instead of asking:
-
-> "How can Android and iOS share code?"
-
-Let's ask a different question.
-
-> "Which parts of this application actually belong to the business?"
-
-This subtle change completely transforms the discussion.
-
-Businesses don't own Android.
-
-Businesses don't own iOS.
-
-Businesses own:
-
-- Pricing rules
-- Customer validation
-- Loyalty programs
-- Authentication policies
-- Payment workflows
-- Order processing
-- Shipping calculations
-
-These concepts exist regardless of platform.
-
-Whether a customer places an order from an Android phone, an iPhone, a desktop browser, or a smartwatch, the business rules remain exactly the same.
-
-That realization is the foundation of Kotlin Multiplatform.
-
-JetBrains didn't begin with the idea of sharing platforms.
-
-They began with the idea of sharing **business knowledge**.
+Confusing these two responsibilities leads to tightly coupled applications that become increasingly difficult to maintain.
 
 ---
 
-## A Thought Experiment
+## Every Layer Has a Different Responsibility
 
-Imagine tomorrow your company decides to build four applications.
+One of the most common architectural mistakes is treating every layer of the application equally.
 
-- Android
-- iOS
-- Desktop
-- Web
+In reality, each layer exists for a different reason.
 
-Should the discount calculation now exist four times?
+Let's examine a simplified architecture.
 
-Should inventory validation exist four times?
+```text
+                User Interface
 
-Should coupon rules exist four times?
+                      │
 
-Should authentication logic exist four times?
+              Presentation Layer
 
-Clearly not.
+                      │
 
-Adding more platforms shouldn't multiply business logic.
+                Business Layer
 
-The business itself hasn't changed.
+                      │
 
-Only the number of user interfaces has changed.
+                 Data Layer
 
-Once you start viewing software through this lens, the architectural direction becomes much clearer.
+                      │
 
-Instead of asking:
+             External Systems
+```
 
-> "Which platform owns this code?"
+### User Interface
 
-you begin asking:
+Responsible for displaying information.
 
-> "Does this code represent the business, or does it represent the platform?"
+It should know nothing about pricing rules or tax calculations.
 
-That single question is one of the most valuable architectural filters you'll use throughout this book.
+---
 
-It not only explains why Kotlin Multiplatform exists—it also explains why certain code belongs in shared modules while other code should remain platform-specific.
+### Presentation Layer
 
-The distinction between **business code** and **platform code** is the foundation upon which the rest of Kotlin Multiplatform is built.
+Coordinates user interactions.
+
+It converts user actions into business requests.
+
+---
+
+### Business Layer
+
+Contains the rules that define how the application behaves.
+
+This is where products differentiate themselves.
+
+---
+
+### Data Layer
+
+Responsible for communicating with APIs, databases, and local storage.
+
+It retrieves information but does not define business policies.
+
+Separating these responsibilities allows each layer to evolve independently.
+
+It also makes identifying shareable code much easier.
+
+---
+
+## Why Duplication Is More Dangerous Than It Appears
+
+Most developers think duplication means writing more code.
+
+The bigger problem is maintaining consistency.
+
+Consider a single pricing rule.
+
+```
+Orders above ₹999 receive free shipping.
+```
+
+Initially, Android and iOS teams implement the same logic.
+
+Months later, marketing changes the rule.
+
+```
+Orders above ₹1499 receive free shipping.
+```
+
+Now someone must remember to update:
+
+- Android implementation
+- Android unit tests
+- Android UI tests
+- Android documentation
+
+and
+
+- iOS implementation
+- iOS unit tests
+- iOS UI tests
+- iOS documentation
+
+One forgotten update creates inconsistent customer experiences.
+
+The problem isn't the number of lines of code.
+
+The problem is maintaining multiple sources of truth.
+
+Architecture should reduce opportunities for inconsistency.
+
+Not increase them.
+
+---
+
+## A Better Way to Think About Applications
+
+Instead of asking,
+
+> "How many platforms do we support?"
+
+try asking,
+
+> "How many versions of our business exist?"
+
+Ideally, the answer should always be:
+
+**One.**
+
+One pricing engine.
+
+One authentication policy.
+
+One validation system.
+
+One inventory calculation.
+
+One loyalty program.
+
+One checkout workflow.
+
+Platforms should present the business.
+
+They shouldn't redefine it.
+
+This idea forms the philosophical foundation of Kotlin Multiplatform and explains why the shared module becomes the heart of the application rather than just another library.
+
+From this point onward, we'll begin exploring how JetBrains translated this architectural philosophy into a practical development model that allows Android and iOS applications to share business logic without sacrificing native experiences.
 ````
