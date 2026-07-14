@@ -58,13 +58,10 @@ Let's take something as simple as user login.
 
 Most developers visualize login like this:
 
-```text
+```
 Email
-
 Password
-
-↓
-
+  ↓
 Login Button
 ```
 
@@ -72,7 +69,7 @@ That is only what users can see.
 
 Under the hood, login is a workflow involving multiple layers.
 
-```text
+```
 User taps Login
 
         │
@@ -251,7 +248,7 @@ This is why Kotlin Multiplatform intentionally keeps platform APIs separate.
 
 Separating Business Logic from Platform Logic
 
-```text
+```
                     Mobile Application
 
           ┌──────────────────────────────┐
