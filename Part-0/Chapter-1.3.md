@@ -299,21 +299,21 @@ However, most enterprise applications share surprisingly large portions of their
 
 The following table reflects what many production teams experience.
 
-| Layer | Can Be Shared? | Typical Share |
-|--------|----------------|---------------|
-| Domain Models | ✅ Yes | 100% |
-| Business Rules | ✅ Yes | 100% |
-| Use Cases | ✅ Yes | 100% |
-| Validation | ✅ Yes | 100% |
-| Networking | ✅ Yes | 100% |
-| Serialization | ✅ Yes | 100% |
-| Repository | ✅ Yes | 90–100% |
-| Database | ✅ Mostly | 80–100% |
-| Presentation Logic | ✅ Often | 60–100% |
-| User Interface | ⚠ Depends | 0–100% |
-| Camera | ❌ Platform-specific | 0% |
-| Bluetooth | ❌ Platform-specific | 0% |
-| Notifications | ❌ Platform-specific | 0% |
+| Layer                   | Can Be Shared?       |  Typical Share |
+|-------------------------|----------------------|-----------------|
+| Domain Models           |     ✅ Yes           |      100%      |
+| Business Rules          |     ✅ Yes           |      100%      |
+| Use Cases               |     ✅ Yes           |      100%      |
+| Validation              |     ✅ Yes           |      100%      |
+| Networking              |     ✅ Yes           |      100%      |
+| Serialization           |     ✅ Yes           |      100%      |
+| Repository              |     ✅ Yes           |     90–100%    |
+| Database                |     ✅ Mostly        |     80–100%    |
+| Presentation Logic      |     ✅ Often         |     60–100%    |
+| User Interface          |     ⚠ Depends        |     0–100%     |
+| Camera                  | ❌ Platform-specific |      0%        |
+| Bluetooth               | ❌ Platform-specific |      0%        |
+| Notifications           | ❌ Platform-specific |      0%        |
 
 This table often surprises Android developers.
 
