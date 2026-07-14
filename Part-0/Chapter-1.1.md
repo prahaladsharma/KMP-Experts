@@ -9,7 +9,7 @@ Part: 1
 Estimated_reading_time: "20–25 Minutes"
 ---
 
-> *"The biggest waste in software engineering isn't writing code. It's writing the same code twice."*
+> "The biggest waste in software engineering isn't writing code. It's writing the same code twice."
 
 ---
 
