@@ -63,38 +63,24 @@ There was no cross-platform architecture.
 Each platform was treated as an independent product.
 
 ```
-                  Mobile Product
-
+              Mobile Product
              "Build Android App"
-
                      │
-
                Android Team
-
                      │
-
-           Java / Android SDK
-
+             Java / Android SDK
                      │
-
-              Android APK
+                Android APK
 ```
 
 ```
-                  Mobile Product
-
+              Mobile Product
               "Build iOS App"
-
                      │
-
                  iOS Team
-
                      │
-
-          Objective-C / Cocoa
-
+             Objective-C / Cocoa
                      │
-
                 iPhone App
 ```
 
@@ -250,11 +236,11 @@ Independent Native Mobile Development
                      │
         ┌────────────┴────────────┐
         ▼                         ▼
- Android Team               iOS Team
+    Android Team               iOS Team
         │                         │
- Native Android          Native iOS
+   Native Android             Native iOS
         │                         │
- Android App              iPhone App
+    Android App                iPhone App
 ```
 
 **Observation**
