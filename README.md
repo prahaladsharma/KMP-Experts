@@ -4,9 +4,8 @@
 > **From Android Developer to Multiplatform Architect**
 ---
 
-<img width="1055" height="1491" alt="KMP_Book_Cover.png" src="https://github.com/user-attachments/assets/53af17c7-a90e-4565-aaca-1946e39e70ba" />
+![Asset Image](https://github.com/user-attachments/assets/53af17c7-a90e-4565-aaca-1946e39e70ba)
 
-![Alternative text](images/your-KMP_Book_Cover.png)
 
 ## 🚀 About This Project
 
