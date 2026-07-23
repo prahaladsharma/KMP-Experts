@@ -4,6 +4,11 @@
 > **From Android Developer to Multiplatform Architect**
 ---
 
+
+<p align="center">
+  <img src="images/cover.png" alt="The Kotlin Multiplatform Handbook" width="500"/>
+</p>
+
 ## 🚀 About This Project
 
 Welcome to **The Kotlin Multiplatform Handbook**—a comprehensive, production-focused guide to building modern cross-platform applications with **Kotlin Multiplatform (KMP)**.
