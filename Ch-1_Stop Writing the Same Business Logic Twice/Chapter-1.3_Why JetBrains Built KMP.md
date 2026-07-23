@@ -1,4 +1,5 @@
-````markdown
+# Title: "Chapter 1 — Stop Writing the Same Business Logic Twice"
+
 ## The Turning Point
 
 Once engineering teams began separating **business logic** from **platform logic**, a different architectural question emerged.
