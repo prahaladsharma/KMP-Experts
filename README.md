@@ -4,7 +4,7 @@
 > **From Android Developer to Multiplatform Architect**
 ---
 
-![Asset Image](https://github.com/user-attachments/assets/53af17c7-a90e-4565-aaca-1946e39e70ba)
+<img width="1055" height="1491" alt="Image" src="https://github.com/user-attachments/assets/e647ac28-5182-4454-8e47-eeeecaff4790" />
 
 
 ## 🚀 About This Project
