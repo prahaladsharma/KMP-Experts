@@ -4,10 +4,8 @@
 > **From Android Developer to Multiplatform Architect**
 ---
 
+![Asset Image](https://github.com/user-attachments/assets/53af17c7-a90e-4565-aaca-1946e39e70ba)
 
-<p align="center">
-  <img src="images/cover.png" alt="The Kotlin Multiplatform Handbook" width="500"/>
-</p>
 
 ## 🚀 About This Project
 
