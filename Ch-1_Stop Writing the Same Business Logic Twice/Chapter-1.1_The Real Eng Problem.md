@@ -1,11 +1,15 @@
-````markdown
----
-Title: "Chapter 1 — Stop Writing the Same Business Logic Twice"
+# Title: "Chapter 1 — Stop Writing the Same Business Logic Twice"
+
 Subtitle: "Why Kotlin Multiplatform Exists"
+
 Book: "The Kotlin Multiplatform Handbook"
+
 Author: "Prahalad Sharma"
+
 Chapter: 1
+
 Part: 1
+
 Estimated_reading_time: "20–25 Minutes"
 ---
 
