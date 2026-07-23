@@ -1,5 +1,4 @@
-````markdown
-
+# Chapter 2 — The Evolution of Mobile Development
 # Why Kotlin Multiplatform Is Different
 
 By the time Kotlin Multiplatform entered the industry, developers had already spent years experimenting with different cross-platform approaches.
