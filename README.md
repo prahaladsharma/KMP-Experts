@@ -6,7 +6,7 @@
 
 
 <p align="center">
-  <img src="images/cover.png" alt="The Kotlin Multiplatform Handbook" width="500"/>
+  <img src="images/KMP_Book_Cover.png" alt="The Kotlin Multiplatform Handbook" width="500"/>
 </p>
 
 ## 🚀 About This Project
