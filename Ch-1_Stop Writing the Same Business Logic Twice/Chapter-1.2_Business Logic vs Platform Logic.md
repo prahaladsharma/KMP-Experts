@@ -1,4 +1,5 @@
-````markdown
+# Title: "Chapter 1 — Stop Writing the Same Business Logic Twice"
+
 ## Looking at Mobile Development from a Business Perspective
 
 Software engineers often discuss mobile development in terms of technology.
