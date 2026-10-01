@@ -1,0 +1,8014 @@
+# Chapter 10 — Project Structure
+
+## Part 4 — Packages
+
+Gradle modules define **large architectural boundaries**.
+
+Packages define the **internal organization inside those boundaries**.
+
+This distinction becomes extremely important in a KMP project.
+
+A repository can have excellent modules and still become difficult to maintain if every module contains:
+
+```text
+utils/
+models/
+managers/
+helpers/
+common/
+```
+
+without clear ownership.
+
+The opposite problem also exists.
+
+A project can create hundreds of Gradle modules when a simple package would have been enough.
+
+The goal is not:
+
+```text
+More packages
+```
+
+or:
+
+```text
+More modules
+```
+
+The goal is:
+
+> **Use modules for meaningful dependency and ownership boundaries, and packages for meaningful code organization inside those boundaries.**
+
+---
+
+# 1. Package vs Module
+
+The first distinction to understand:
+
+```text
+Gradle Module
+    ↓
+Build boundary
+Dependency boundary
+Ownership boundary
+API boundary
+
+Package
+    ↓
+Code organization boundary
+Namespace
+Discoverability
+Logical grouping
+```
+
+A package normally lives inside a module.
+
+```text
+Module
+└── Package
+    ├── Class
+    ├── Interface
+    └── Function
+```
+
+---
+
+# 2. The Basic Mental Model
+
+Think about project structure at multiple levels:
+
+```text
+Repository
+    │
+    ▼
+Application / Module
+    │
+    ▼
+Feature
+    │
+    ▼
+Package
+    │
+    ▼
+Class / Function
+```
+
+Each level answers a different question.
+
+| Level | Main Question |
+|---|---|
+| Repository | What belongs to this product? |
+| Module | What is an independent dependency/build boundary? |
+| Feature | What business capability does this code own? |
+| Package | How is code organized inside that boundary? |
+| Class | What behavior does this type provide? |
+| Function | What operation does this code perform? |
+
+---
+
+# 3. Packages Are Not Architectural Layers by Themselves
+
+A package named:
+
+```text
+domain
+```
+
+does not automatically create Clean Architecture.
+
+A package named:
+
+```text
+data
+```
+
+does not automatically enforce dependency direction.
+
+This:
+
+```text
+com.example.orders.domain
+com.example.orders.data
+com.example.orders.presentation
+```
+
+is only organization.
+
+Architecture comes from:
+
+```text
+Dependency direction
++
+Ownership
++
+Visibility
++
+Module boundaries
++
+Rules
+```
+
+---
+
+# 4. Package Structure Is a Communication Tool
+
+When a developer opens:
+
+```text
+features/orders/
+```
+
+the package structure should help answer:
+
+```text
+Where is the business rule?
+Where is the repository contract?
+Where is the API mapping?
+Where is the UI state?
+Where is the platform adapter?
+```
+
+Good package organization reduces navigation time.
+
+---
+
+# 5. A Poor Package Structure
+
+A common legacy structure:
+
+```text
+orders/
+├── models/
+├── utils/
+├── managers/
+├── helpers/
+├── services/
+├── repositories/
+└── screens/
+```
+
+The problem is not that these names are always wrong.
+
+The problem is that they often describe:
+
+```text
+Technical type
+```
+
+rather than:
+
+```text
+Business responsibility
+```
+
+---
+
+# 6. Feature-Oriented Packages
+
+A stronger structure is:
+
+```text
+orders/
+├── domain/
+├── data/
+├── presentation/
+└── navigation/
+```
+
+or, for a smaller feature:
+
+```text
+orders/
+├── Order.kt
+├── OrderRepository.kt
+├── OrderScreen.kt
+└── OrderViewModel.kt
+```
+
+The right depth depends on complexity.
+
+---
+
+# 7. Package Depth Should Follow Complexity
+
+Do not create:
+
+```text
+orders/
+  domain/
+    model/
+      entity/
+        aggregate/
+          valueobject/
+```
+
+for a feature containing five classes.
+
+Package hierarchy should communicate real boundaries.
+
+---
+
+# 8. The Package Depth Rule
+
+A useful heuristic:
+
+```text
+Low complexity
+→ flatter packages
+
+High complexity
+→ deeper packages
+```
+
+Do not introduce hierarchy simply because an architecture diagram contains layers.
+
+---
+
+# 9. Package-by-Feature
+
+One of the strongest defaults for application code is:
+
+```text
+features/
+├── orders/
+├── payments/
+├── profile/
+└── inventory/
+```
+
+Each feature owns its internal packages.
+
+This keeps related code physically close.
+
+---
+
+# 10. Package-by-Layer
+
+Another approach is:
+
+```text
+presentation/
+├── orders/
+├── payments/
+└── profile/
+
+domain/
+├── orders/
+├── payments/
+└── profile/
+
+data/
+├── orders/
+├── payments/
+└── profile/
+```
+
+This can work.
+
+But it spreads one business capability across the repository.
+
+For large products, this often increases navigation cost.
+
+---
+
+# 11. Feature vs Layer Organization
+
+Compare:
+
+### Layer-first
+
+```text
+domain/
+└── orders/
+
+data/
+└── orders/
+
+presentation/
+└── orders/
+```
+
+### Feature-first
+
+```text
+orders/
+├── domain/
+├── data/
+└── presentation/
+```
+
+Feature-first makes:
+
+```text
+Business ownership
+```
+
+more visible.
+
+---
+
+# 12. KMP Recommendation
+
+For most medium and large KMP applications:
+
+```text
+Feature-first
+```
+
+is a strong default.
+
+Inside the feature:
+
+```text
+domain
+data
+presentation
+platform
+navigation
+```
+
+can be introduced when complexity justifies them.
+
+---
+
+# 13. Example KMP Feature
+
+```text
+features/orders/
+├── src/
+│   ├── commonMain/
+│   │   └── com/example/orders/
+│   │       ├── domain/
+│   │       ├── data/
+│   │       ├── presentation/
+│   │       └── navigation/
+│   │
+│   ├── commonTest/
+│   ├── androidMain/
+│   └── iosMain/
+│
+└── build.gradle.kts
+```
+
+The module defines the major boundary.
+
+Packages organize the internals.
+
+---
+
+# 14. Package Names in KMP
+
+A typical package:
+
+```kotlin
+package com.example.orders.domain
+```
+
+or:
+
+```kotlin
+package com.example.orders.data
+```
+
+The package should communicate:
+
+```text
+Product
+Feature
+Responsibility
+```
+
+---
+
+# 15. Package Naming Convention
+
+A common convention:
+
+```text
+com.company.product.feature.area
+```
+
+For example:
+
+```text
+com.acme.shop.orders.domain
+com.acme.shop.orders.data
+com.acme.shop.orders.presentation
+```
+
+The exact company naming standard can vary.
+
+Consistency matters more than a specific string.
+
+---
+
+# 16. Package Names Should Be Stable
+
+Package names are referenced by:
+
+```text
+Imports
+Tests
+Reflection
+Generated code
+Tooling
+Documentation
+```
+
+Therefore avoid constantly changing package names.
+
+A package rename is architectural work when the package is widely consumed.
+
+---
+
+# 17. Package Names and Business Language
+
+Prefer:
+
+```text
+orders
+payments
+inventory
+```
+
+over:
+
+```text
+module1
+featureA
+misc
+common
+```
+
+The package name should use the team's domain language.
+
+---
+
+# 18. Package Naming Is Architecture Documentation
+
+Compare:
+
+```text
+com.example.app.common.utils
+```
+
+with:
+
+```text
+com.example.app.orders.domain
+```
+
+The second tells a developer much more about ownership.
+
+---
+
+# 19. Package-by-Feature Example
+
+```text
+features/
+├── orders/
+│   ├── domain/
+│   ├── data/
+│   ├── presentation/
+│   └── navigation/
+│
+├── payments/
+│   ├── domain/
+│   ├── data/
+│   └── presentation/
+│
+└── profile/
+    ├── domain/
+    ├── data/
+    └── presentation/
+```
+
+This structure supports local reasoning.
+
+---
+
+# 20. What Is Local Reasoning?
+
+Suppose you are fixing:
+
+```text
+Order cancellation
+```
+
+Ideally you should mostly inspect:
+
+```text
+features/orders
+```
+
+instead of searching:
+
+```text
+domain/
+data/
+presentation/
+utils/
+managers/
+services/
+```
+
+across the entire repository.
+
+---
+
+# 21. Package Structure and Developer Experience
+
+Good package organization makes it easy to answer:
+
+```text
+Where should this code go?
+```
+
+That is one of the most important architecture outcomes.
+
+---
+
+# 22. Package Ownership
+
+Every package should have an implicit answer to:
+
+```text
+Who owns this behavior?
+```
+
+For:
+
+```text
+orders.domain
+```
+
+the answer is:
+
+```text
+Orders feature
+```
+
+For:
+
+```text
+core.network
+```
+
+the answer is:
+
+```text
+Platform / Core team
+```
+
+---
+
+# 23. Packages Inside Shared Modules
+
+Consider:
+
+```text
+core/network/
+└── src/commonMain/
+    └── com/example/core/network/
+        ├── client/
+        ├── config/
+        ├── error/
+        └── serialization/
+```
+
+This is useful when the module has enough complexity.
+
+---
+
+# 24. Packages Should Not Replace Modules
+
+Suppose:
+
+```text
+features/orders
+features/payments
+```
+
+are both packages inside:
+
+```text
+:app
+```
+
+They look separated.
+
+But they can still directly access each other's internals.
+
+A package does not automatically create a Gradle dependency boundary.
+
+---
+
+# 25. Package vs Module Isolation
+
+```text
+Package
+    ↓
+Logical organization
+
+Module
+    ↓
+Compiler/build/dependency boundary
+```
+
+If you need enforcement:
+
+```text
+Use a module.
+```
+
+If you only need organization:
+
+```text
+Use a package.
+```
+
+---
+
+# 26. The Important Question
+
+Ask:
+
+> **Do I need to prevent this code from depending on that code?**
+
+If:
+
+```text
+Yes
+```
+
+a package may not be enough.
+
+Consider:
+
+```text
+Gradle module
+```
+
+or architectural validation.
+
+---
+
+# 27. Kotlin `internal`
+
+Kotlin provides another useful boundary:
+
+```kotlin
+internal
+```
+
+An `internal` declaration is visible within the module.
+
+This means:
+
+```text
+Package organization
++
+Module visibility
+```
+
+can work together.
+
+---
+
+# 28. Package Does Not Equal Visibility
+
+For example:
+
+```kotlin
+package com.example.orders.internal
+
+class OrderMapper
+```
+
+The package name says:
+
+```text
+This is internal.
+```
+
+But unless visibility is restricted, other code in the same module can still access it.
+
+For stronger intent:
+
+```kotlin
+internal class OrderMapper
+```
+
+---
+
+# 29. Package and `internal` Together
+
+A strong pattern:
+
+```text
+orders/
+├── api/
+│   └── OrderRepository.kt
+│
+└── internal/
+    ├── OrderRepositoryImpl.kt
+    └── OrderMapper.kt
+```
+
+with:
+
+```kotlin
+internal class OrderRepositoryImpl
+```
+
+The package communicates intent.
+
+`internal` enforces module-level visibility.
+
+---
+
+# 30. Public vs Internal Packages
+
+A useful organization:
+
+```text
+orders/
+├── api/
+├── domain/
+├── internal/
+└── presentation/
+```
+
+But do not create `api/` and `internal/` packages mechanically.
+
+Use them when the public/internal distinction is meaningful.
+
+---
+
+# 31. Public API Package
+
+Suppose a feature exposes:
+
+```kotlin
+interface OrdersEntryPoint {
+    fun createEntryPoint()
+}
+```
+
+It may live in:
+
+```text
+orders.api
+```
+
+while implementation remains:
+
+```text
+orders.internal
+```
+
+---
+
+# 32. Package-Level API Design
+
+A package can communicate:
+
+```text
+This is safe for other parts of the system to use.
+```
+
+For example:
+
+```text
+orders.api
+```
+
+versus:
+
+```text
+orders.internal
+```
+
+But remember:
+
+> **Naming communicates intent; visibility enforces it.**
+
+---
+
+# 33. Avoid Public Everything
+
+A common problem:
+
+```text
+public class
+public interface
+public data class
+```
+
+for every type.
+
+If a class is only used internally:
+
+```kotlin
+internal
+```
+
+should be considered.
+
+---
+
+# 34. Public API Surface
+
+Suppose a feature contains:
+
+```text
+30 classes
+```
+
+but only:
+
+```text
+3
+```
+
+need external access.
+
+The architecture should make that obvious.
+
+```text
+Public API
+├── OrdersEntryPoint
+├── OrdersNavigator
+└── OrderSummary
+```
+
+Everything else can remain internal.
+
+---
+
+# 35. Package Structure and API Design
+
+Good package structure often mirrors the public API:
+
+```text
+orders/
+├── api/
+│   ├── OrdersEntryPoint.kt
+│   └── OrdersNavigator.kt
+│
+├── domain/
+├── data/
+└── presentation/
+```
+
+The consumer knows where to start.
+
+---
+
+# 36. Package Organization Inside Domain
+
+A domain package might contain:
+
+```text
+domain/
+├── model/
+├── repository/
+├── usecase/
+└── policy/
+```
+
+This can be useful for large features.
+
+But it is not mandatory.
+
+---
+
+# 37. Small Domain Package
+
+For a small feature:
+
+```text
+domain/
+├── Order.kt
+├── OrderRepository.kt
+└── CancelOrder.kt
+```
+
+This is often easier to navigate.
+
+---
+
+# 38. Large Domain Package
+
+For a large feature:
+
+```text
+domain/
+├── model/
+│   ├── Order.kt
+│   └── OrderStatus.kt
+│
+├── repository/
+│   └── OrderRepository.kt
+│
+├── usecase/
+│   ├── GetOrders.kt
+│   └── CancelOrder.kt
+│
+└── policy/
+    └── CancellationPolicy.kt
+```
+
+Package depth should follow actual complexity.
+
+---
+
+# 39. Package Organization Inside Data
+
+A common structure:
+
+```text
+data/
+├── remote/
+├── local/
+├── mapper/
+└── repository/
+```
+
+For example:
+
+```text
+data/
+├── remote/
+│   ├── OrderApi.kt
+│   └── OrderDto.kt
+│
+├── local/
+│   ├── OrderEntity.kt
+│   └── OrderDao.kt
+│
+├── mapper/
+│   └── OrderMapper.kt
+│
+└── repository/
+    └── OrderRepositoryImpl.kt
+```
+
+---
+
+# 40. Package Organization Inside Presentation
+
+A large Compose feature might use:
+
+```text
+presentation/
+├── list/
+├── details/
+├── edit/
+└── components/
+```
+
+This can be more useful than:
+
+```text
+presentation/
+├── screens/
+├── viewmodels/
+├── states/
+└── events/
+```
+
+because the first groups code by user-facing behavior.
+
+---
+
+# 41. Screen-Oriented Packages
+
+For example:
+
+```text
+presentation/
+├── order-list/
+│   ├── OrderListScreen.kt
+│   ├── OrderListViewModel.kt
+│   └── OrderListUiState.kt
+│
+├── order-details/
+│   ├── OrderDetailsScreen.kt
+│   ├── OrderDetailsViewModel.kt
+│   └── OrderDetailsUiState.kt
+```
+
+This improves local reasoning.
+
+---
+
+# 42. Package-by-Screen vs Package-by-Type
+
+Compare:
+
+### Type-oriented
+
+```text
+screens/
+viewmodels/
+states/
+events/
+components/
+```
+
+### Behavior-oriented
+
+```text
+order-list/
+order-details/
+order-edit/
+```
+
+For complex UI, behavior-oriented packaging often keeps related files together.
+
+---
+
+# 43. Compose and Package Structure
+
+Jetpack Compose makes it easy to create many small components.
+
+Do not create:
+
+```text
+components/
+```
+
+as a dumping ground.
+
+Instead:
+
+```text
+order-details/
+├── OrderDetailsScreen.kt
+├── OrderDetailsHeader.kt
+├── OrderDetailsActions.kt
+└── OrderDetailsViewModel.kt
+```
+
+when those components belong specifically to the screen.
+
+---
+
+# 44. Shared UI Components
+
+Reusable UI primitives belong in:
+
+```text
+design-system/
+```
+
+For example:
+
+```text
+design-system/
+├── button/
+├── card/
+├── text-field/
+└── typography/
+```
+
+Feature-specific UI stays in:
+
+```text
+features/orders/
+```
+
+---
+
+# 45. Package and UI Ownership
+
+```text
+Design System
+└── AppButton
+
+Orders
+└── CancelOrderButton
+```
+
+The first is reusable visual infrastructure.
+
+The second represents business meaning.
+
+---
+
+# 46. Package Structure for KMP Source Sets
+
+KMP introduces another dimension:
+
+```text
+commonMain
+androidMain
+iosMain
+```
+
+Packages should generally remain semantically aligned across source sets.
+
+Example:
+
+```text
+commonMain/
+└── com/example/orders/platform/
+
+androidMain/
+└── com/example/orders/platform/
+
+iosMain/
+└── com/example/orders/platform/
+```
+
+---
+
+# 47. Why Consistent Packages Across Source Sets Help
+
+Suppose:
+
+```text
+commonMain
+com.example.orders.platform.SecureStorage
+```
+
+Android:
+
+```text
+androidMain
+com.example.orders.platform.SecureStorage
+```
+
+iOS:
+
+```text
+iosMain
+com.example.orders.platform.SecureStorage
+```
+
+The package structure communicates that these implementations belong to the same capability.
+
+---
+
+# 48. `expect / actual` Package Organization
+
+Example:
+
+```text
+orders/
+└── platform/
+    └── SecureStorage.kt
+```
+
+in:
+
+```text
+commonMain
+```
+
+and matching platform implementations:
+
+```text
+androidMain
+└── platform/
+    └── SecureStorage.kt
+
+iosMain
+└── platform/
+    └── SecureStorage.kt
+```
+
+---
+
+# 49. Platform Package Naming
+
+Avoid:
+
+```text
+androidStuff
+iosStuff
+```
+
+as broad package names.
+
+Prefer:
+
+```text
+platform.storage
+platform.notifications
+platform.camera
+```
+
+The package should describe capability, not merely platform.
+
+---
+
+# 50. KMP Package Mental Model
+
+Think:
+
+```text
+commonMain
+    ↓
+What the application means
+
+androidMain / iosMain
+    ↓
+How the platform provides it
+```
+
+Package structure should reinforce this separation.
+
+---
+
+# 51. Common Package Across Platforms
+
+A strong example:
+
+```text
+com.example.core.security
+```
+
+exists across:
+
+```text
+commonMain
+androidMain
+iosMain
+```
+
+This makes the conceptual boundary stable.
+
+---
+
+# 52. Package Naming and Platform Details
+
+Sometimes platform-specific details genuinely need separate packages:
+
+```text
+com.example.core.security.android
+com.example.core.security.ios
+```
+
+Use this only when it improves discoverability.
+
+Do not duplicate platform names everywhere simply because source sets already separate the code.
+
+---
+
+# 53. Packages and `expect / actual`
+
+The common API:
+
+```kotlin
+package com.example.core.security
+
+expect class SecureStorage
+```
+
+Android:
+
+```kotlin
+package com.example.core.security
+
+actual class SecureStorage
+```
+
+This keeps imports stable.
+
+---
+
+# 54. Package Organization for `actual`
+
+Avoid:
+
+```text
+common.security
+android.security
+ios.security
+```
+
+if it forces consumers to import platform-specific packages.
+
+Prefer the same conceptual package where practical.
+
+---
+
+# 55. Package Structure and Dependency Direction
+
+Suppose:
+
+```text
+orders.domain
+```
+
+should not depend on:
+
+```text
+orders.presentation
+```
+
+A package name does not enforce this.
+
+You need:
+
+```text
+Module boundaries
+Visibility
+Architecture tests
+Code review
+```
+
+---
+
+# 56. Package-Level Dependency Graph
+
+Inside a feature:
+
+```text
+presentation
+     ↓
+domain
+     ↑
+data
+```
+
+The desired relationship may be:
+
+```text
+presentation → domain
+data → domain
+```
+
+while:
+
+```text
+domain → presentation
+```
+
+should be forbidden.
+
+---
+
+# 57. Package-Level Architecture
+
+```text
+features/orders
+│
+├── presentation ──────┐
+│                      │
+├── data ──────────────┼──→ domain
+│                      │
+└── domain              │
+                       │
+                 business rules
+```
+
+The package layout makes the intended architecture visible.
+
+---
+
+# 58. Package vs Dependency Enforcement
+
+A package can communicate:
+
+```text
+domain
+```
+
+but Kotlin will not automatically stop:
+
+```text
+domain → presentation
+```
+
+Therefore:
+
+> **Packages explain architecture. Modules and automated rules help enforce it.**
+
+---
+
+# 59. Architecture Tests for Packages
+
+For larger projects, tools can validate package dependencies.
+
+Conceptually:
+
+```text
+orders.domain
+    ✗
+orders.presentation
+
+orders.domain
+    ✗
+android.*
+```
+
+This protects the package architecture.
+
+---
+
+# 60. Package and Platform API Leakage
+
+Bad:
+
+```kotlin
+package com.example.orders.domain
+
+import android.content.Context
+```
+
+The package says:
+
+```text
+domain
+```
+
+but the implementation violates the boundary.
+
+The package structure must be backed by dependency rules.
+
+---
+
+# 61. Package and KMP Portability
+
+A good `commonMain` package should avoid:
+
+```text
+Android SDK
+iOS UIKit
+platform-specific APIs
+```
+
+unless accessed through an intentional abstraction.
+
+---
+
+# 62. Package Organization for Shared Core
+
+Example:
+
+```text
+core/network/
+└── src/commonMain/
+    └── com/example/core/network/
+        ├── client/
+        ├── config/
+        ├── error/
+        └── interceptor/
+```
+
+Platform-specific engine setup:
+
+```text
+androidMain/
+└── com/example/core/network/engine/
+
+iosMain/
+└── com/example/core/network/engine/
+```
+
+---
+
+# 63. Package Organization for Security
+
+```text
+core/security/
+└── src/commonMain/
+    └── com/example/core/security/
+        ├── auth/
+        ├── storage/
+        └── crypto/
+```
+
+The exact breakdown depends on complexity.
+
+---
+
+# 64. Avoid Over-Packaging
+
+A common mistake:
+
+```text
+security/
+├── auth/
+│   ├── contract/
+│   └── implementation/
+├── storage/
+│   ├── contract/
+│   └── implementation/
+└── crypto/
+    ├── contract/
+    └── implementation/
+```
+
+for a module containing ten files.
+
+This creates navigation overhead.
+
+---
+
+# 65. The Package Density Rule
+
+If a package contains only:
+
+```text
+1–2 classes
+```
+
+and has no meaningful semantic boundary, ask whether the extra package is necessary.
+
+Do not optimize for package count.
+
+---
+
+# 66. Empty or Nearly Empty Packages
+
+Avoid creating package directories because:
+
+```text
+"Maybe we will need them later."
+```
+
+Create structure as the code earns it.
+
+---
+
+# 67. Package Growth
+
+A package can evolve:
+
+```text
+orders.domain
+```
+
+then:
+
+```text
+orders.domain.model
+orders.domain.policy
+orders.domain.repository
+```
+
+when the number of concepts justifies the split.
+
+This is normal architecture evolution.
+
+---
+
+# 68. Package Refactoring
+
+Package refactoring is often cheaper than module refactoring.
+
+For example:
+
+```text
+orders.models
+```
+
+can become:
+
+```text
+orders.domain.model
+orders.data.remote
+```
+
+without necessarily creating new Gradle modules.
+
+---
+
+# 69. Package Extraction as an Intermediate Step
+
+A useful migration path:
+
+```text
+Monolithic package
+        ↓
+Feature packages
+        ↓
+Clear internal boundaries
+        ↓
+Extract Gradle modules when needed
+```
+
+Packages can therefore be an intermediate architectural tool.
+
+---
+
+# 70. Package Structure in a Monolith
+
+Even a single KMP module can be organized well:
+
+```text
+shared/
+└── src/commonMain/
+    └── com/example/app/
+        ├── orders/
+        ├── payments/
+        ├── profile/
+        └── core/
+```
+
+This is much better than:
+
+```text
+com/example/app/
+├── models/
+├── utils/
+└── managers/
+```
+
+---
+
+# 71. Package Structure Before Modularization
+
+A monolithic KMP project can prepare for future modules:
+
+```text
+app/
+├── orders/
+├── payments/
+└── profile/
+```
+
+Later:
+
+```text
+:features:orders
+:features:payments
+:features:profile
+```
+
+The package structure already communicates ownership.
+
+---
+
+# 72. Package-to-Module Migration
+
+For example:
+
+```text
+app
+└── com.example.orders
+```
+
+can move to:
+
+```text
+features/orders
+└── com.example.orders
+```
+
+The package name can remain stable.
+
+This minimizes import churn.
+
+---
+
+# 73. Stable Package Names During Module Extraction
+
+This is a useful migration technique:
+
+```text
+Before:
+:app
+└── com.example.orders
+
+After:
+:features:orders
+└── com.example.orders
+```
+
+The module boundary changes.
+
+The package namespace does not necessarily need to change.
+
+---
+
+# 74. Package Structure and Refactoring Cost
+
+Good package naming reduces future refactoring because:
+
+```text
+Business ownership
+```
+
+is already visible.
+
+Bad package organization forces:
+
+```text
+File moves
+Imports
+Visibility changes
+Tests
+Documentation
+```
+
+during every modularization effort.
+
+---
+
+# 75. Package Naming and Domain-Driven Design
+
+Domain-driven design encourages language such as:
+
+```text
+orders
+payments
+inventory
+identity
+```
+
+rather than:
+
+```text
+manager
+helper
+service
+processor
+```
+
+when the business concept is more meaningful.
+
+---
+
+# 76. Package by Business Capability
+
+Instead of:
+
+```text
+services/
+└── OrderService.kt
+```
+
+consider:
+
+```text
+orders/
+└── domain/
+    └── OrderService.kt
+```
+
+if the service is actually an Orders business capability.
+
+Better still, name the behavior precisely:
+
+```text
+CancelOrder.kt
+```
+
+when that is what the class actually does.
+
+---
+
+# 77. Avoid Generic Class Names
+
+Packages cannot fully compensate for vague classes.
+
+Bad:
+
+```text
+Manager
+Helper
+Processor
+Handler
+Util
+Service
+```
+
+when the actual behavior is known.
+
+Prefer:
+
+```text
+OrderCancellationPolicy
+PaymentAuthorizer
+CustomerMapper
+InventorySynchronizer
+```
+
+---
+
+# 78. Package + Class Naming
+
+Good:
+
+```text
+orders/
+└── domain/
+    └── policy/
+        └── OrderCancellationPolicy.kt
+```
+
+The package and class name reinforce each other.
+
+---
+
+# 79. Package Structure and Searchability
+
+Developers frequently navigate code using:
+
+```text
+IDE search
+Go to symbol
+Find usages
+Package tree
+```
+
+Semantic package names make all of these workflows faster.
+
+---
+
+# 80. Package and IDE Navigation
+
+Compare:
+
+```text
+utils/
+```
+
+with:
+
+```text
+orders/domain/policy/
+```
+
+When searching for cancellation behavior, the second gives immediate context.
+
+---
+
+# 81. Package Structure and Code Review
+
+A reviewer should be able to identify:
+
+```text
+Is this business logic?
+Is this infrastructure?
+Is this UI?
+Is this platform code?
+```
+
+from the location.
+
+That reduces review ambiguity.
+
+---
+
+# 82. Package Structure and Code Ownership
+
+Packages can map naturally to:
+
+```text
+CODEOWNERS
+```
+
+or team ownership conventions.
+
+For example:
+
+```text
+/features/orders/
+```
+
+can belong to:
+
+```text
+Orders Team
+```
+
+while:
+
+```text
+/core/security/
+```
+
+belongs to:
+
+```text
+Security/Platform Team
+```
+
+---
+
+# 83. Package Ownership and Teams
+
+Package structure can therefore align:
+
+```text
+Business capability
+        ↓
+Package
+        ↓
+Module
+        ↓
+Team
+```
+
+This is a powerful enterprise architecture pattern.
+
+---
+
+# 84. Package and Team Boundaries
+
+However:
+
+```text
+Package ≠ team boundary
+```
+
+A package can be too small to justify independent ownership.
+
+Use modules for stronger boundaries.
+
+---
+
+# 85. Package Structure and CODEOWNERS
+
+Example:
+
+```text
+features/orders/
+    → Orders Team
+
+core/security/
+    → Platform Security Team
+
+design-system/
+    → Design System Team
+```
+
+This makes ownership explicit.
+
+---
+
+# 86. Package Organization for APIs
+
+Feature API package:
+
+```text
+orders/api/
+├── OrdersEntryPoint.kt
+└── OrdersRoute.kt
+```
+
+Internal packages:
+
+```text
+orders/domain/
+orders/data/
+orders/presentation/
+```
+
+This is especially useful when other modules consume a feature entry point.
+
+---
+
+# 87. Package Organization for Contracts
+
+A contracts module may use:
+
+```text
+contracts/payment/
+├── PaymentGateway.kt
+├── PaymentRequest.kt
+└── PaymentResult.kt
+```
+
+Keep contracts small and stable.
+
+---
+
+# 88. Package Structure and Shared Contracts
+
+Avoid:
+
+```text
+contracts/
+└── models/
+    └── everything.kt
+```
+
+Contracts should represent specific capabilities.
+
+---
+
+# 89. Package Structure for Integration Adapters
+
+For vendor integrations:
+
+```text
+integrations/
+├── analytics/
+│   ├── AnalyticsAdapter.kt
+│   └── FirebaseAnalyticsAdapter.kt
+│
+└── payments/
+    ├── PaymentGatewayAdapter.kt
+    └── StripePaymentAdapter.kt
+```
+
+The package makes the integration boundary visible.
+
+---
+
+# 90. Package Structure and Vendor Leakage
+
+Consumers should ideally import:
+
+```kotlin
+import com.example.analytics.Analytics
+```
+
+not:
+
+```kotlin
+import com.vendor.sdk.FirebaseAnalytics
+```
+
+The package structure should help prevent vendor leakage.
+
+---
+
+# 91. Package Structure and Repository Implementations
+
+Inside a feature:
+
+```text
+orders/
+├── domain/
+│   └── repository/
+│       └── OrderRepository.kt
+│
+└── data/
+    └── repository/
+        └── OrderRepositoryImpl.kt
+```
+
+This makes the dependency inversion visible.
+
+---
+
+# 92. Repository Contract Ownership
+
+The repository interface belongs close to the business abstraction:
+
+```text
+domain.repository
+```
+
+The implementation belongs to:
+
+```text
+data.repository
+```
+
+The package structure communicates the distinction.
+
+---
+
+# 93. Package Structure and Mappers
+
+Mappers can become another dumping ground.
+
+Avoid:
+
+```text
+mappers/
+├── OrderMapper
+├── PaymentMapper
+├── ProfileMapper
+└── EverythingMapper
+```
+
+Prefer placing mapping close to its context:
+
+```text
+orders/data/mapper/
+payments/data/mapper/
+profile/data/mapper/
+```
+
+---
+
+# 94. Package Structure and DTOs
+
+DTOs usually belong near the external data source:
+
+```text
+orders/data/remote/
+└── OrderDto.kt
+```
+
+rather than:
+
+```text
+shared/models/
+└── OrderDto.kt
+```
+
+This protects feature boundaries.
+
+---
+
+# 95. Package Structure and Database Entities
+
+Similarly:
+
+```text
+orders/data/local/
+└── OrderEntity.kt
+```
+
+rather than:
+
+```text
+core/database/entities/
+└── OrderEntity.kt
+```
+
+if the entity belongs to Orders.
+
+---
+
+# 96. Package Structure and Mapping Boundary
+
+A healthy flow:
+
+```text
+Remote DTO
+    ↓
+Mapper
+    ↓
+Domain Model
+    ↓
+UI Model
+```
+
+Packages can make each boundary visible.
+
+---
+
+# 97. Package Structure and UI Models
+
+Avoid putting:
+
+```text
+OrderUiState
+```
+
+inside:
+
+```text
+domain/model
+```
+
+when it represents presentation concerns.
+
+Prefer:
+
+```text
+orders/presentation/order-list/
+└── OrderListUiState.kt
+```
+
+---
+
+# 98. Package Structure and Domain Models
+
+Domain models should not contain:
+
+```text
+Compose state
+Android Context
+UI-specific strings
+Views
+```
+
+A package name alone does not enforce this.
+
+But good placement makes the violation obvious.
+
+---
+
+# 99. Package Structure and Platform Code
+
+Platform-specific implementations should remain close to the capability they implement.
+
+Example:
+
+```text
+core/security/
+├── commonMain/
+│   └── SecureStorage.kt
+│
+├── androidMain/
+│   └── SecureStorage.android.kt
+│
+└── iosMain/
+    └── SecureStorage.ios.kt
+```
+
+The package remains semantically consistent.
+
+---
+
+# 100. Package Structure and Source Set Trees
+
+A KMP module may look like:
+
+```text
+core/security/
+├── src/
+│   ├── commonMain/
+│   │   └── com/example/security/
+│   │       ├── SecureStorage.kt
+│   │       └── SecurityError.kt
+│   │
+│   ├── commonTest/
+│   │   └── com/example/security/
+│   │       └── SecureStorageTest.kt
+│   │
+│   ├── androidMain/
+│   │   └── com/example/security/
+│   │       └── SecureStorage.android.kt
+│   │
+│   └── iosMain/
+│       └── com/example/security/
+│           └── SecureStorage.ios.kt
+```
+
+This makes source-set responsibilities clear.
+
+---
+
+# 101. Test Packages
+
+Keep test package names aligned with production packages.
+
+Production:
+
+```text
+com.example.orders.domain
+```
+
+Test:
+
+```text
+com.example.orders.domain
+```
+
+This makes tests easy to locate.
+
+---
+
+# 102. Test Package Organization
+
+Example:
+
+```text
+commonTest/
+└── com/example/orders/
+    ├── domain/
+    ├── data/
+    └── presentation/
+```
+
+The test tree mirrors production semantics.
+
+---
+
+# 103. Test Fixtures and Package Ownership
+
+Feature-specific fixtures:
+
+```text
+orders/test-fixtures/
+```
+
+or:
+
+```text
+orders/commonTest/
+```
+
+Generic fixtures:
+
+```text
+shared/testing/
+```
+
+Do not move everything into shared testing.
+
+---
+
+# 104. Package Structure and Test Visibility
+
+`internal` production APIs can still be tested from within the same module.
+
+This is another reason not to make everything public just for tests.
+
+---
+
+# 105. Package Structure and Generated Code
+
+KMP projects may use:
+
+```text
+KSP
+Serialization
+DI code generation
+Database code generation
+```
+
+Generated packages should be predictable and should not be mixed with handwritten architecture packages unnecessarily.
+
+---
+
+# 106. Generated Code Boundaries
+
+Prefer:
+
+```text
+generated/
+```
+
+or tool-defined packages when appropriate.
+
+Do not manually edit generated code.
+
+---
+
+# 107. Package Structure and Serialization
+
+For `kotlinx.serialization`:
+
+```kotlin
+@Serializable
+data class OrderDto(
+    val id: String
+)
+```
+
+Keep DTOs near their data boundary:
+
+```text
+orders.data.remote
+```
+
+unless they are intentionally part of a public contract.
+
+---
+
+# 108. Package Structure and Public Serialization Models
+
+If a model is intentionally shared between modules:
+
+```text
+contracts.orders
+```
+
+may be appropriate.
+
+But then it becomes a public contract and should be treated accordingly.
+
+---
+
+# 109. Package Structure and API Contracts
+
+A public contract should be:
+
+```text
+Stable
+Documented
+Small
+Versioned when necessary
+```
+
+Package placement should make its public status clear.
+
+---
+
+# 110. Package Organization for Navigation
+
+A feature may expose:
+
+```text
+orders/navigation/
+├── OrdersDestination.kt
+├── OrdersNavigator.kt
+└── OrdersEntryPoint.kt
+```
+
+Navigation details remain separate from:
+
+```text
+orders/domain
+```
+
+---
+
+# 111. Navigation and Package Ownership
+
+A navigation route should not force domain code to know:
+
+```text
+Compose NavController
+```
+
+or:
+
+```text
+UIKit navigation
+```
+
+Keep platform/UI navigation concerns near presentation/application composition.
+
+---
+
+# 112. Package Structure and Deep Links
+
+Deep-link definitions may live in:
+
+```text
+orders/navigation/
+```
+
+while parsing infrastructure may live in:
+
+```text
+core/navigation/
+```
+
+This keeps:
+
+```text
+Infrastructure
+```
+
+separate from:
+
+```text
+Feature destinations
+```
+
+---
+
+# 113. Package Structure and Events
+
+Feature events can remain feature-owned:
+
+```text
+orders/presentation/order-details/
+└── OrderDetailsEvent.kt
+```
+
+Cross-feature events should be modeled intentionally.
+
+Do not create:
+
+```text
+shared/events/
+```
+
+for every event.
+
+---
+
+# 114. Shared Events Trap
+
+A package like:
+
+```text
+shared/events
+```
+
+often becomes a hidden coupling mechanism.
+
+If:
+
+```text
+OrderCreated
+```
+
+is consumed by multiple systems, decide whether it is:
+
+```text
+Domain event
+Integration event
+Analytics event
+Application event
+```
+
+Then place it accordingly.
+
+---
+
+# 115. Package Structure and Domain Events
+
+A genuine shared domain event may live in:
+
+```text
+contracts/events/
+```
+
+if multiple independent consumers require the contract.
+
+But do not create shared events merely to avoid defining ownership.
+
+---
+
+# 116. Package Structure and State
+
+Avoid:
+
+```text
+shared/state/
+```
+
+containing every application's state.
+
+Prefer state ownership:
+
+```text
+orders/presentation
+payments/presentation
+profile/presentation
+```
+
+Global state should be intentionally modeled.
+
+---
+
+# 117. Package Structure and State Machines
+
+A feature state machine belongs close to the feature:
+
+```text
+orders/domain/
+└── OrderStateMachine.kt
+```
+
+or:
+
+```text
+orders/presentation/order-details/
+└── OrderDetailsStateMachine.kt
+```
+
+depending on what the state represents.
+
+---
+
+# 118. Package Structure and Coroutines
+
+Coroutine utilities may belong in:
+
+```text
+core/concurrency/
+```
+
+only when there is meaningful shared behavior.
+
+Do not create:
+
+```text
+coroutines/utils/
+```
+
+for one helper function.
+
+---
+
+# 119. Package Structure and Dispatchers
+
+If you define:
+
+```kotlin
+interface AppDispatchers
+```
+
+place it according to ownership:
+
+```text
+core/concurrency/
+```
+
+if it is application infrastructure.
+
+Feature-specific scheduling belongs to the feature.
+
+---
+
+# 120. Package Structure and Time
+
+A shared clock abstraction may live in:
+
+```text
+core/time/
+```
+
+if multiple modules require deterministic time behavior.
+
+A feature-specific time policy belongs to:
+
+```text
+feature/domain
+```
+
+---
+
+# 121. Package Structure and Error Models
+
+Infrastructure errors:
+
+```text
+core/network/error
+```
+
+Feature errors:
+
+```text
+orders/domain/error
+payments/domain/error
+```
+
+This prevents infrastructure concepts from leaking into business layers.
+
+---
+
+# 122. Package Structure and Exception Translation
+
+Example:
+
+```text
+NetworkException
+      ↓
+Repository
+      ↓
+OrderError
+      ↓
+ViewModel
+      ↓
+UI
+```
+
+The package boundaries can mirror the translation stages.
+
+---
+
+# 123. Package Structure and Logging
+
+A feature can log through:
+
+```kotlin
+logger.error("Order cancellation failed")
+```
+
+but the logger implementation remains:
+
+```text
+core/observability
+```
+
+The feature package owns the message.
+
+The infrastructure package owns the logging mechanism.
+
+---
+
+# 124. Package Structure and Metrics
+
+Generic metrics:
+
+```text
+core/observability
+```
+
+Feature metrics:
+
+```text
+orders/observability
+```
+
+when the metrics have feature-specific semantic ownership.
+
+---
+
+# 125. Package Structure and Analytics
+
+Generic analytics capability:
+
+```text
+core/analytics
+```
+
+Feature event definitions:
+
+```text
+orders/analytics
+```
+
+This keeps business meaning near its feature.
+
+---
+
+# 126. Package Structure and Feature Flags
+
+Flag infrastructure:
+
+```text
+core/featureflags
+```
+
+Feature flags:
+
+```text
+orders/config
+```
+
+or:
+
+```text
+orders/featureflags
+```
+
+depending on project conventions.
+
+---
+
+# 127. Package Structure and Configuration
+
+Global infrastructure:
+
+```text
+core/config
+```
+
+Feature configuration:
+
+```text
+orders/config
+```
+
+Do not put every configuration value into:
+
+```text
+GlobalConfig
+```
+
+---
+
+# 128. Package Structure and Environment
+
+Environment selection may live in:
+
+```text
+app/config
+```
+
+or:
+
+```text
+core/config
+```
+
+while:
+
+```text
+OrderConfiguration
+```
+
+belongs to Orders if it represents feature-specific policy.
+
+---
+
+# 129. Package Structure and Security
+
+Security package organization can be:
+
+```text
+core/security/
+├── auth/
+├── crypto/
+├── storage/
+└── biometrics/
+```
+
+But only introduce subpackages when each represents a meaningful capability.
+
+---
+
+# 130. Package Structure and Authentication
+
+Authentication feature:
+
+```text
+features/authentication/
+├── domain/
+├── data/
+├── presentation/
+└── navigation/
+```
+
+Security infrastructure:
+
+```text
+core/security/
+```
+
+The distinction is:
+
+```text
+Authentication = product capability
+Security = infrastructure capability
+```
+
+---
+
+# 131. Package Structure and Authorization
+
+Authorization rules can be:
+
+```text
+orders/domain/policy/
+```
+
+while identity and credential infrastructure lives in:
+
+```text
+core/security/
+```
+
+This preserves business ownership.
+
+---
+
+# 132. Package Structure and Offline-First
+
+A feature might use:
+
+```text
+orders/data/
+├── local/
+├── remote/
+├── sync/
+└── repository/
+```
+
+The shared infrastructure might provide:
+
+```text
+core/database
+core/network
+core/sync
+```
+
+The feature owns the semantics.
+
+---
+
+# 133. Package Structure and Synchronization
+
+Generic synchronization infrastructure:
+
+```text
+core/sync
+```
+
+Feature synchronization policy:
+
+```text
+orders/data/sync
+```
+
+Do not put:
+
+```text
+OrderSyncPolicy
+```
+
+inside:
+
+```text
+core/sync
+```
+
+unless it is truly generic.
+
+---
+
+# 134. Package Structure and Background Work
+
+Generic background infrastructure:
+
+```text
+core/background
+```
+
+Feature work:
+
+```text
+orders/background
+```
+
+or:
+
+```text
+orders/data/sync
+```
+
+depending on architecture.
+
+The package should communicate ownership.
+
+---
+
+# 135. Package Structure and Platform Background Work
+
+Android and iOS may implement background work differently.
+
+A shared contract:
+
+```text
+BackgroundTaskScheduler
+```
+
+can live in:
+
+```text
+core/background
+```
+
+while platform implementations remain in:
+
+```text
+androidMain
+iosMain
+```
+
+---
+
+# 136. Package Structure and Notifications
+
+Generic:
+
+```text
+core/notifications
+```
+
+Feature-specific:
+
+```text
+orders/notifications
+```
+
+For example:
+
+```text
+OrderReadyNotification
+```
+
+belongs to Orders.
+
+The platform notification mechanism belongs to infrastructure.
+
+---
+
+# 137. Package Structure and Device APIs
+
+Generic capabilities:
+
+```text
+platform/camera
+platform/location
+platform/biometrics
+```
+
+should expose platform-neutral contracts.
+
+Business packages consume those capabilities.
+
+---
+
+# 138. Package Structure and Device Leakage
+
+Avoid:
+
+```text
+orders/domain
+└── AndroidCameraManager.kt
+```
+
+This violates both:
+
+```text
+domain boundary
+```
+
+and:
+
+```text
+KMP portability
+```
+
+---
+
+# 139. Package Structure and Platform Adapters
+
+Prefer:
+
+```text
+platform/camera/
+├── commonMain/
+│   └── Camera.kt
+├── androidMain/
+│   └── AndroidCamera.kt
+└── iosMain/
+    └── IosCamera.kt
+```
+
+The feature sees the capability, not the platform details.
+
+---
+
+# 140. Package Structure and Dependency Injection
+
+DI modules can be organized by ownership:
+
+```text
+orders/di/
+payments/di/
+core/network/di/
+core/security/di/
+```
+
+Avoid a single:
+
+```text
+di/
+```
+
+package containing every binding in a large application.
+
+---
+
+# 141. DI Package Ownership
+
+Feature DI:
+
+```text
+Orders dependencies
+```
+
+Core DI:
+
+```text
+Network
+Database
+Security
+```
+
+Application composition:
+
+```text
+App-level assembly
+```
+
+The package tree should reflect this.
+
+---
+
+# 142. Package Structure and Composition Root
+
+A common structure:
+
+```text
+app/
+└── di/
+    └── AppGraph.kt
+```
+
+while:
+
+```text
+features/orders/di/
+```
+
+contains feature-specific bindings.
+
+The composition root connects them.
+
+---
+
+# 143. Package Structure and Dependency Injection Leakage
+
+Avoid putting business decisions inside DI modules:
+
+```kotlin
+single {
+    if (flags.isEnabled(...)) {
+        NewOrderPolicy()
+    } else {
+        OldOrderPolicy()
+    }
+}
+```
+
+when the feature should own the policy decision.
+
+DI should assemble dependencies, not become a hidden business layer.
+
+---
+
+# 144. Package Structure and Factory Classes
+
+A generic:
+
+```text
+Factory
+```
+
+package can become vague.
+
+Prefer:
+
+```text
+orders/domain/OrderFactory
+```
+
+if it creates Orders.
+
+Use semantic names.
+
+---
+
+# 145. Package Structure and Repository Names
+
+Avoid:
+
+```text
+repositories/
+    BaseRepository.kt
+```
+
+unless a meaningful shared abstraction exists.
+
+Prefer:
+
+```text
+orders/domain/repository/OrderRepository.kt
+```
+
+---
+
+# 146. Package Structure and Use Cases
+
+For small features:
+
+```text
+orders/domain/
+├── GetOrders.kt
+├── CancelOrder.kt
+└── CreateOrder.kt
+```
+
+For large features:
+
+```text
+orders/domain/usecase/
+├── GetOrders.kt
+├── CancelOrder.kt
+└── CreateOrder.kt
+```
+
+Again:
+
+```text
+Complexity determines depth.
+```
+
+---
+
+# 147. Package Structure and One-Class Packages
+
+Avoid:
+
+```text
+orders/domain/cancel/
+└── CancelOrder.kt
+```
+
+unless `cancel` is a substantial subdomain.
+
+One-class packages add navigation cost without meaningful boundaries.
+
+---
+
+# 148. Package Structure and Subdomains
+
+A package can be useful when a capability becomes a subdomain:
+
+```text
+orders/
+├── fulfillment/
+├── cancellation/
+├── pricing/
+└── tracking/
+```
+
+This is valuable when each area contains multiple related concepts.
+
+---
+
+# 149. Package Structure and Bounded Contexts
+
+If:
+
+```text
+Orders
+```
+
+contains distinct subdomains:
+
+```text
+Pricing
+Fulfillment
+Tracking
+```
+
+packages can make those boundaries visible before they become separate modules.
+
+---
+
+# 150. Package Structure and Future Module Extraction
+
+A useful strategy:
+
+```text
+orders/
+├── pricing/
+├── fulfillment/
+└── tracking/
+```
+
+Later:
+
+```text
+:features:orders-pricing
+:features:orders-fulfillment
+:features:orders-tracking
+```
+
+when independent lifecycle or ownership requires it.
+
+---
+
+# 151. Package Structure and Premature Modules
+
+Do not create:
+
+```text
+:orders:pricing
+```
+
+just because:
+
+```text
+pricing/
+```
+
+exists.
+
+A package may be sufficient.
+
+Extract a module when:
+
+```text
+Dependency isolation
+Build isolation
+Ownership
+Reuse
+API encapsulation
+```
+
+justify it.
+
+---
+
+# 152. Package Structure and Package Stability
+
+A package that changes together should stay together.
+
+A package that changes independently may deserve separation.
+
+This gives a useful heuristic:
+
+> **Organize code around change patterns, not only around class types.**
+
+---
+
+# 153. Package Structure and Cohesion
+
+High cohesion:
+
+```text
+orders/cancellation/
+├── CancellationPolicy
+├── CancellationReason
+└── CancelOrder
+```
+
+These classes change for related reasons.
+
+Low cohesion:
+
+```text
+utils/
+├── DateFormatter
+├── PaymentHelper
+├── ImageLoader
+└── OrderParser
+```
+
+They have unrelated reasons to change.
+
+---
+
+# 154. Package Structure and Coupling
+
+A package with many dependencies on unrelated areas may indicate poor cohesion.
+
+For example:
+
+```text
+common/
+```
+
+depends on:
+
+```text
+orders
+payments
+profile
+inventory
+```
+
+This should trigger review.
+
+---
+
+# 155. Package Structure and Change Coupling
+
+If changing:
+
+```text
+Payment
+```
+
+requires touching:
+
+```text
+orders/common
+profile/common
+shared/common
+```
+
+the package structure is hiding ownership.
+
+Move code closer to the concept it belongs to.
+
+---
+
+# 156. Package Structure and "Manager" Packages
+
+Avoid:
+
+```text
+managers/
+```
+
+containing:
+
+```text
+OrderManager
+PaymentManager
+UserManager
+SyncManager
+```
+
+The package does not communicate why these classes belong together.
+
+Group by business capability or infrastructure responsibility instead.
+
+---
+
+# 157. Package Structure and "Services"
+
+Similarly:
+
+```text
+services/
+```
+
+can become a dumping ground.
+
+Instead:
+
+```text
+orders/
+└── domain/
+    └── OrderPricingService.kt
+```
+
+if it is genuinely an Orders domain service.
+
+---
+
+# 158. Package Structure and "Helpers"
+
+Avoid:
+
+```text
+helpers/
+```
+
+for miscellaneous logic.
+
+A helper should have a semantic home.
+
+For example:
+
+```text
+OrderNumberGenerator
+```
+
+belongs near Orders if it is an Orders concept.
+
+---
+
+# 159. Package Structure and Generic Names
+
+A useful test:
+
+> If you cannot explain why two classes belong in the same package, they probably should not be there.
+
+---
+
+# 160. Package Structure and Semantic Cohesion
+
+Good package:
+
+```text
+orders/cancellation/
+```
+
+contains concepts related to:
+
+```text
+Cancellation
+```
+
+Bad package:
+
+```text
+common/
+```
+
+contains anything that is:
+
+```text
+Used more than once
+```
+
+---
+
+# 161. Package Structure and Reuse
+
+Reuse should happen through:
+
+```text
+Intentional shared capability
+```
+
+not:
+
+```text
+Accidental proximity
+```
+
+If code becomes reusable, extract it into a meaningful shared module or package when appropriate.
+
+---
+
+# 162. Package Structure and Shared Utilities
+
+For example:
+
+```text
+formatCurrency()
+```
+
+might live in:
+
+```text
+core/localization
+```
+
+if it has broad semantic meaning.
+
+But:
+
+```text
+formatOrderPrice()
+```
+
+belongs to:
+
+```text
+orders
+```
+
+---
+
+# 163. Package Structure and API Design
+
+Package names can guide API usage:
+
+```text
+core.security.SecureStorage
+```
+
+communicates:
+
+```text
+Capability
+```
+
+while:
+
+```text
+core.common.BaseManager
+```
+
+communicates almost nothing.
+
+---
+
+# 164. Package Structure and Domain Language
+
+Use nouns from the product:
+
+```text
+orders
+payments
+inventory
+customers
+subscriptions
+```
+
+This makes the repository readable to:
+
+```text
+Engineers
+Product Managers
+Architects
+New Team Members
+```
+
+---
+
+# 165. Package Structure and Team Communication
+
+When someone says:
+
+> “The issue is in `orders.fulfillment`.”
+
+the package name becomes part of the team's language.
+
+This is valuable in large organizations.
+
+---
+
+# 166. Package Structure and Documentation
+
+Documentation can reference package boundaries:
+
+```text
+Order cancellation logic:
+features/orders/domain/cancellation
+
+Payment integration:
+features/payments/data/gateway
+```
+
+This makes architecture documentation concrete.
+
+---
+
+# 167. Package Structure and Git History
+
+Meaningful packages also improve Git history interpretation.
+
+Instead of:
+
+```text
+common/Helper.kt
+```
+
+developers see:
+
+```text
+orders/cancellation/CancellationPolicy.kt
+```
+
+The intent is clearer.
+
+---
+
+# 168. Package Structure and Code Ownership
+
+When a file changes:
+
+```text
+features/orders/domain/cancellation/
+```
+
+the owner is obvious.
+
+This improves:
+
+```text
+Code review routing
+On-call ownership
+Incident investigation
+```
+
+---
+
+# 169. Package Structure and Incident Response
+
+Suppose production reports:
+
+```text
+Payment authorization failures
+```
+
+A semantic package structure points toward:
+
+```text
+features/payments
+integrations/payments
+core/network
+core/observability
+```
+
+rather than a generic:
+
+```text
+services/
+```
+
+---
+
+# 170. Package Structure and Debugging
+
+Good package boundaries reduce search space.
+
+```text
+Bug
+ ↓
+Capability
+ ↓
+Feature
+ ↓
+Package
+ ↓
+Implementation
+```
+
+This is much faster than searching the entire codebase.
+
+---
+
+# 171. Package Structure and IDE Refactoring
+
+Semantic packages help IDE refactoring because related code is grouped.
+
+For example:
+
+```text
+orders/fulfillment
+```
+
+can be moved or extracted as a unit when necessary.
+
+---
+
+# 172. Package Structure and Module Extraction
+
+A mature feature can evolve:
+
+```text
+orders/
+├── domain/
+├── data/
+├── presentation/
+└── fulfillment/
+```
+
+Later:
+
+```text
+features/orders
+features/order-fulfillment
+```
+
+The package boundary provided the initial semantic separation.
+
+---
+
+# 173. Package Structure and Architecture Evolution
+
+Architecture should evolve gradually:
+
+```text
+Package
+   ↓
+Module
+   ↓
+Library
+   ↓
+Published capability
+```
+
+Do not jump directly to the most expensive boundary.
+
+---
+
+# 174. Package Structure and KMP Architecture
+
+A KMP architecture can therefore be visualized as:
+
+```text
+Repository
+   │
+   ├── Applications
+   │
+   ├── Feature Modules
+   │      │
+   │      └── Packages
+   │
+   ├── Shared Modules
+   │      │
+   │      └── Packages
+   │
+   ├── Platform Modules
+   │      │
+   │      └── Packages
+   │
+   └── Build Logic
+```
+
+Packages provide the internal map.
+
+---
+
+# 175. Package Structure and Source Sets
+
+The full hierarchy can be:
+
+```text
+Module
+  │
+  ├── commonMain
+  │      └── package
+  │
+  ├── commonTest
+  │      └── package
+  │
+  ├── androidMain
+  │      └── package
+  │
+  └── iosMain
+         └── package
+```
+
+Each source set has its own implementation scope.
+
+---
+
+# 176. Package Structure and Common Code
+
+A common package:
+
+```text
+com.example.orders.domain
+```
+
+should contain code that is truly common.
+
+If it contains Android APIs:
+
+```text
+commonMain
+```
+
+is no longer portable.
+
+---
+
+# 177. Package Structure and Platform Code
+
+Android:
+
+```text
+com.example.orders.platform.android
+```
+
+can contain:
+
+```text
+Android-specific implementation
+```
+
+but often the better pattern is to keep the conceptual package stable:
+
+```text
+com.example.orders.platform
+```
+
+across source sets.
+
+---
+
+# 178. Package Structure and iOS Code
+
+Likewise:
+
+```text
+com.example.orders.platform
+```
+
+can contain:
+
+```text
+IosSecureStorage
+```
+
+in `iosMain`.
+
+The source set already communicates the platform.
+
+---
+
+# 179. Package Structure and Platform Naming
+
+Because:
+
+```text
+androidMain
+```
+
+already tells you:
+
+```text
+Android
+```
+
+you do not always need:
+
+```text
+.android
+```
+
+in every package.
+
+Avoid redundant naming.
+
+---
+
+# 180. Package Structure and Multiplatform Hierarchy
+
+With intermediate source sets:
+
+```text
+commonMain
+    │
+    ├── appleMain
+    │       ├── iosMain
+    │       └── macosMain
+    │
+    └── androidMain
+```
+
+packages can remain aligned with the capability.
+
+---
+
+# 181. Package Structure and Apple Shared Code
+
+For example:
+
+```text
+core/security
+└── appleMain
+    └── com/example/security/
+        └── AppleSecureStorage.kt
+```
+
+if the implementation is genuinely shared by Apple targets.
+
+---
+
+# 182. Package Structure and Package Stability Across Platforms
+
+A stable package namespace makes platform implementations easier to locate:
+
+```text
+com.example.core.security
+```
+
+regardless of:
+
+```text
+Android
+iOS
+macOS
+```
+
+---
+
+# 183. Package Structure and Kotlin Naming
+
+Use standard Kotlin naming:
+
+```text
+lowercase.package.names
+```
+
+Classes:
+
+```text
+PascalCase
+```
+
+Functions:
+
+```text
+camelCase
+```
+
+Avoid:
+
+```text
+Com.Example.Orders
+```
+
+or inconsistent package capitalization.
+
+---
+
+# 184. Package Structure and File Names
+
+A file should generally communicate its primary concept:
+
+```text
+OrderRepository.kt
+CancelOrder.kt
+OrderMapper.kt
+OrderDetailsScreen.kt
+```
+
+Avoid:
+
+```text
+Common.kt
+Utils.kt
+Helper.kt
+Stuff.kt
+```
+
+unless the purpose is genuinely broad and well-defined.
+
+---
+
+# 185. Package Structure and Top-Level Functions
+
+Kotlin allows top-level functions.
+
+This is useful for focused behavior:
+
+```kotlin
+package com.example.orders.domain.pricing
+
+fun calculateOrderTotal(...)
+```
+
+But do not use top-level functions to create an unstructured utility package.
+
+The package must provide semantic ownership.
+
+---
+
+# 186. Package Structure and Extension Functions
+
+Extension functions should live near the concept they extend.
+
+For example:
+
+```kotlin
+package com.example.orders.data.mapper
+
+fun OrderDto.toDomain(): Order
+```
+
+This is clearer than:
+
+```text
+common/extensions
+```
+
+containing hundreds of unrelated extensions.
+
+---
+
+# 187. Extension Function Dumping Grounds
+
+Avoid:
+
+```text
+extensions/
+├── StringExtensions.kt
+├── ListExtensions.kt
+├── OrderExtensions.kt
+└── EverythingExtensions.kt
+```
+
+Organize by ownership.
+
+---
+
+# 188. Package Structure and Kotlin Serialization Extensions
+
+For example:
+
+```kotlin
+orders.data.remote.mapper
+```
+
+can contain:
+
+```kotlin
+fun OrderDto.toDomain()
+```
+
+while:
+
+```text
+domain
+```
+
+remains unaware of transport DTOs.
+
+---
+
+# 189. Package Structure and Compose Extensions
+
+Feature-specific Compose helpers:
+
+```text
+orders.presentation.order-details
+```
+
+Shared design-system helpers:
+
+```text
+design-system
+```
+
+Do not put all Compose extensions into:
+
+```text
+ui.extensions
+```
+
+---
+
+# 190. Package Structure and Resources
+
+In Compose Multiplatform projects, resources may be organized by:
+
+```text
+feature
+```
+
+when the tooling and project architecture support it.
+
+The conceptual ownership should remain:
+
+```text
+Orders resources
+Payments resources
+Design system resources
+```
+
+rather than:
+
+```text
+Global resource dumping ground
+```
+
+---
+
+# 191. Package Structure and Localization Resources
+
+Feature-specific strings should remain discoverable near the feature.
+
+Shared design-system resources belong to the design system.
+
+This reduces accidental cross-feature coupling.
+
+---
+
+# 192. Package Structure and Serialization Models
+
+Transport models:
+
+```text
+orders.data.remote.model
+```
+
+Database models:
+
+```text
+orders.data.local.model
+```
+
+Domain models:
+
+```text
+orders.domain.model
+```
+
+UI models:
+
+```text
+orders.presentation.model
+```
+
+Each model has a clear reason to exist.
+
+---
+
+# 193. Package Structure and Model Duplication
+
+This may create:
+
+```text
+OrderDto
+OrderEntity
+Order
+OrderUiModel
+```
+
+Some developers see this as unnecessary duplication.
+
+But each model represents a different boundary.
+
+Duplication can protect:
+
+```text
+Domain independence
+API evolution
+Database evolution
+UI evolution
+```
+
+---
+
+# 194. Package Structure and Model Mapping
+
+```text
+OrderDto
+   │
+   ▼
+OrderMapper
+   │
+   ▼
+Order
+   │
+   ▼
+OrderUiModel
+```
+
+Packages make these transformations explicit.
+
+---
+
+# 195. Package Structure and UI State
+
+For Compose:
+
+```kotlin
+data class OrderDetailsUiState(
+    val isLoading: Boolean,
+    val order: OrderUiModel?,
+    val error: String?
+)
+```
+
+Place it near:
+
+```text
+OrderDetailsScreen
+```
+
+when it is screen-specific.
+
+---
+
+# 196. Package Structure and State Reuse
+
+If multiple screens genuinely share the same state abstraction:
+
+```text
+orders/presentation/shared
+```
+
+may be appropriate.
+
+But avoid:
+
+```text
+shared/state
+```
+
+as a default.
+
+---
+
+# 197. Package Structure and Presentation Components
+
+A component belongs to the closest meaningful scope.
+
+```text
+PrimaryButton
+→ Design System
+
+OrderStatusChip
+→ Orders
+
+OrderDetailsHeader
+→ Order Details screen
+```
+
+This prevents the `components` package from becoming a dumping ground.
+
+---
+
+# 198. Package Structure and Component Extraction
+
+When a component is reused:
+
+```text
+OrderDetailsHeader
+```
+
+should not automatically move to:
+
+```text
+shared/components
+```
+
+Ask:
+
+```text
+Is it reusable across business contexts?
+```
+
+If yes:
+
+```text
+Design System / Shared UI
+```
+
+If no:
+
+```text
+Keep feature-local.
+```
+
+---
+
+# 199. Package Structure and Domain Services
+
+A domain service can be meaningful:
+
+```text
+orders.domain.pricing.OrderPricingService
+```
+
+when the behavior does not naturally belong to one entity.
+
+But:
+
+```text
+services/
+```
+
+with dozens of services is usually a warning sign.
+
+---
+
+# 200. Package Structure and Use-Case Naming
+
+Prefer:
+
+```text
+CancelOrder
+CreateOrder
+GetOrderDetails
+TrackOrder
+```
+
+over:
+
+```text
+OrderManager
+OrderService
+OrderProcessor
+```
+
+when the operation is clear.
+
+---
+
+# 201. Package Structure and Command/Query Concepts
+
+Packages can reflect behavior:
+
+```text
+orders/domain/command
+orders/domain/query
+```
+
+but introduce this only if the distinction is useful.
+
+Do not create package hierarchies because a pattern is fashionable.
+
+---
+
+# 202. Package Structure and CQRS
+
+If a project genuinely uses CQRS:
+
+```text
+orders/domain/
+├── command/
+└── query/
+```
+
+can communicate the architecture.
+
+Otherwise:
+
+```text
+usecase/
+```
+
+may be simpler.
+
+---
+
+# 203. Package Structure and State Machines
+
+If a feature contains complex state transitions:
+
+```text
+orders/domain/state/
+```
+
+can be meaningful.
+
+For example:
+
+```text
+Pending
+Confirmed
+Packed
+Shipped
+Delivered
+Cancelled
+```
+
+This represents a real subdomain.
+
+---
+
+# 204. Package Structure and Policies
+
+Policies can live in:
+
+```text
+orders/domain/policy/
+```
+
+when there are multiple related policies:
+
+```text
+CancellationPolicy
+RefundPolicy
+ShippingPolicy
+```
+
+A single policy does not require a package.
+
+---
+
+# 205. Package Structure and Subdomain Boundaries
+
+A package becomes especially valuable when:
+
+```text
+Many related classes
++
+Same business concept
++
+Independent evolution
+```
+
+exist.
+
+That is semantic cohesion.
+
+---
+
+# 206. Package Structure and Architecture Smell: `common`
+
+```text
+common/
+```
+
+is often a signal that ownership has not been decided.
+
+Ask:
+
+```text
+Common to whom?
+Why?
+Who owns it?
+```
+
+Then rename based on the answer.
+
+---
+
+# 207. Architecture Smell: `utils`
+
+```text
+utils/
+```
+
+often means:
+
+```text
+No semantic home.
+```
+
+Move each class/function to:
+
+```text
+Feature
+Core capability
+Platform
+Design system
+```
+
+as appropriate.
+
+---
+
+# 208. Architecture Smell: `helpers`
+
+Same problem:
+
+```text
+helpers/
+```
+
+is usually too generic.
+
+Name the capability instead.
+
+---
+
+# 209. Architecture Smell: `managers`
+
+Managers frequently hide multiple responsibilities.
+
+For example:
+
+```text
+OrderManager
+```
+
+may contain:
+
+```text
+Fetching
+Caching
+Validation
+Mapping
+State
+Navigation
+Analytics
+```
+
+Split responsibilities and place them into meaningful packages.
+
+---
+
+# 210. Architecture Smell: `services`
+
+A generic services package can hide business boundaries.
+
+Ask:
+
+```text
+What does this service actually own?
+```
+
+Then move it accordingly.
+
+---
+
+# 211. Architecture Smell: `models`
+
+Global:
+
+```text
+models/
+```
+
+often becomes a model dumping ground.
+
+Prefer:
+
+```text
+orders/domain/model
+orders/data/remote/model
+payments/domain/model
+```
+
+or an intentionally shared contract module.
+
+---
+
+# 212. Architecture Smell: `screens`
+
+Global:
+
+```text
+screens/
+```
+
+can separate UI from its feature.
+
+Prefer:
+
+```text
+orders/presentation/order-details
+payments/presentation/payment-history
+```
+
+when feature ownership matters.
+
+---
+
+# 213. Architecture Smell: `viewmodels`
+
+Global:
+
+```text
+viewmodels/
+```
+
+has the same problem.
+
+Keep ViewModels near the screen/feature they own.
+
+---
+
+# 214. Architecture Smell: `repositories`
+
+Global:
+
+```text
+repositories/
+```
+
+hides feature ownership.
+
+Prefer:
+
+```text
+orders/domain/repository
+payments/domain/repository
+```
+
+and implementations inside the respective data boundaries.
+
+---
+
+# 215. Architecture Smell: `mappers`
+
+Global:
+
+```text
+mappers/
+```
+
+can become enormous.
+
+Keep mappings near their source and target boundaries.
+
+---
+
+# 216. Architecture Smell: `extensions`
+
+Global:
+
+```text
+extensions/
+```
+
+often becomes a miscellaneous code bucket.
+
+Organize extensions by the concept they belong to.
+
+---
+
+# 217. Architecture Smell: `constants`
+
+Global:
+
+```text
+constants/
+```
+
+is another common dumping ground.
+
+Ask what each constant represents.
+
+Examples:
+
+```text
+NetworkConstants
+SecurityConstants
+OrdersConstants
+```
+
+may be better.
+
+---
+
+# 218. Constants and Ownership
+
+For example:
+
+```kotlin
+const val MAX_ORDER_ITEMS = 50
+```
+
+belongs to:
+
+```text
+orders/domain
+```
+
+if it is a business rule.
+
+It should not be:
+
+```text
+core/constants
+```
+
+just because it is a constant.
+
+---
+
+# 219. Architecture Smell: `enums`
+
+Global:
+
+```text
+enums/
+```
+
+can hide business concepts.
+
+Prefer:
+
+```text
+orders/domain/model/OrderStatus.kt
+```
+
+rather than:
+
+```text
+common/enums/OrderStatus.kt
+```
+
+---
+
+# 220. Package Structure and Sealed Classes
+
+A sealed hierarchy often belongs close to its concept.
+
+For example:
+
+```kotlin
+sealed interface OrderError {
+    data object Network : OrderError
+    data object Unauthorized : OrderError
+    data object CancelNotAllowed : OrderError
+}
+```
+
+Place it near the Orders domain.
+
+---
+
+# 221. Package Structure and Error Hierarchies
+
+If errors are infrastructure-level:
+
+```text
+core/network/error
+```
+
+If errors are business-level:
+
+```text
+orders/domain/error
+```
+
+This keeps semantic ownership clear.
+
+---
+
+# 222. Package Structure and Result Types
+
+A generic:
+
+```text
+Result
+```
+
+may be unnecessary if Kotlin already provides what you need.
+
+Do not create:
+
+```text
+common/result/
+```
+
+without a strong reason.
+
+---
+
+# 223. Package Structure and Generic Abstractions
+
+The same rule applies to:
+
+```text
+BaseResult
+BaseState
+BaseRepository
+BaseUseCase
+BaseViewModel
+```
+
+Generic abstractions often create coupling without providing enough value.
+
+---
+
+# 224. Package Structure and Inheritance
+
+Packages can hide inheritance coupling.
+
+For example:
+
+```text
+common/base/
+└── BaseViewModel.kt
+```
+
+then:
+
+```text
+orders
+payments
+profile
+```
+
+all inherit from it.
+
+Changes to the base class now affect every feature.
+
+Composition may be better.
+
+---
+
+# 225. Package Structure and Composition
+
+Prefer:
+
+```text
+orders.presentation
+    ↓
+Logger
+Analytics
+DispatcherProvider
+```
+
+over:
+
+```text
+BaseViewModel
+```
+
+when dependencies can be explicit.
+
+---
+
+# 226. Package Structure and Dependency Injection
+
+Explicit dependencies improve package reasoning:
+
+```kotlin
+class OrderViewModel(
+    private val getOrders: GetOrders,
+    private val logger: Logger
+)
+```
+
+The package tells you:
+
+```text
+Orders presentation
+```
+
+The constructor tells you:
+
+```text
+Required capabilities
+```
+
+---
+
+# 227. Package Structure and Hidden Dependencies
+
+Avoid service locators:
+
+```kotlin
+ServiceLocator.get<OrderRepository>()
+```
+
+because package structure cannot reveal the dependency.
+
+Explicit injection keeps architecture visible.
+
+---
+
+# 228. Package Structure and Circular Imports
+
+Kotlin package names do not inherently prevent cycles.
+
+Example:
+
+```text
+orders.presentation
+    ↓
+payments.domain
+    ↓
+orders.domain
+```
+
+This may still compile.
+
+Module boundaries and architecture rules are needed for stronger enforcement.
+
+---
+
+# 229. Package Structure and Feature-to-Feature Communication
+
+Avoid importing internal classes:
+
+```kotlin
+import com.example.orders.internal.OrderRepositoryImpl
+```
+
+from Payments.
+
+If Payments needs something from Orders, define an intentional contract.
+
+---
+
+# 230. Package Structure and Public Feature APIs
+
+For example:
+
+```text
+orders/api/OrdersEntryPoint.kt
+```
+
+can provide:
+
+```kotlin
+interface OrdersEntryPoint {
+    fun openOrder(
+        orderId: String
+    )
+}
+```
+
+Payments does not need to know:
+
+```text
+OrdersViewModel
+OrderRepositoryImpl
+OrderMapper
+```
+
+---
+
+# 231. Package Structure and Feature Encapsulation
+
+A mature feature might look like:
+
+```text
+orders/
+├── api/
+│   └── OrdersEntryPoint.kt
+│
+├── domain/
+│   ├── model/
+│   ├── repository/
+│   └── usecase/
+│
+├── data/
+│   ├── remote/
+│   ├── local/
+│   ├── mapper/
+│   └── repository/
+│
+├── presentation/
+│   ├── list/
+│   ├── details/
+│   └── components/
+│
+└── navigation/
+```
+
+This is a strong package-level organization.
+
+---
+
+# 232. Package Structure and Internal Implementation
+
+Within the feature:
+
+```text
+api
+```
+
+is public.
+
+Everything else can be:
+
+```text
+internal
+```
+
+where appropriate.
+
+This gives:
+
+```text
+Clear API
++
+Flexible implementation
+```
+
+---
+
+# 233. Package Structure and `internal` Across KMP
+
+Kotlin `internal` visibility is module-scoped.
+
+That means:
+
+```text
+commonMain
+androidMain
+iosMain
+```
+
+inside the same KMP module participate in the module boundary.
+
+Use this carefully when sharing implementation details across source sets.
+
+---
+
+# 234. Package Structure and `internal` Platform Implementations
+
+For example:
+
+```kotlin
+internal class AndroidSecureStorage
+```
+
+can remain inaccessible outside the module.
+
+The public contract remains:
+
+```kotlin
+SecureStorage
+```
+
+---
+
+# 235. Package Structure and API Leakage
+
+Avoid returning internal implementation types from public APIs.
+
+Bad:
+
+```kotlin
+public fun repository(): OrderRepositoryImpl
+```
+
+Better:
+
+```kotlin
+public fun repository(): OrderRepository
+```
+
+The package structure and visibility should align.
+
+---
+
+# 236. Package Structure and Generic Repository Types
+
+Avoid:
+
+```kotlin
+interface Repository<T>
+```
+
+if the abstraction hides meaningful business semantics.
+
+Prefer:
+
+```kotlin
+interface OrderRepository
+```
+
+when the repository represents a business capability.
+
+---
+
+# 237. Package Structure and Domain Semantics
+
+Packages should answer:
+
+```text
+What business concept is this?
+```
+
+not merely:
+
+```text
+What technical pattern is this?
+```
+
+This is the central package-design principle.
+
+---
+
+# 238. Package Structure and Technical vs Semantic Organization
+
+Technical:
+
+```text
+repositories/
+mappers/
+services/
+models/
+```
+
+Semantic:
+
+```text
+orders/
+payments/
+inventory/
+```
+
+For application-level architecture, semantic organization is usually more discoverable.
+
+---
+
+# 239. Package Structure and Internal Technical Organization
+
+Technical organization still has value inside a semantic boundary:
+
+```text
+orders/
+├── domain/
+├── data/
+└── presentation/
+```
+
+The combination is powerful:
+
+```text
+Business first
+Technical second
+```
+
+---
+
+# 240. Package Structure and Vertical Slices
+
+An alternative is to organize entirely by user journey:
+
+```text
+orders/
+├── create-order/
+├── cancel-order/
+├── track-order/
+└── order-details/
+```
+
+Each slice can contain:
+
+```text
+domain
+data
+presentation
+```
+
+This is useful for very large features.
+
+---
+
+# 241. Package Structure and Vertical Slice Example
+
+```text
+orders/
+├── create/
+│   ├── domain/
+│   ├── data/
+│   └── presentation/
+│
+├── cancel/
+│   ├── domain/
+│   └── presentation/
+│
+└── details/
+    ├── domain/
+    └── presentation/
+```
+
+This maximizes local reasoning.
+
+---
+
+# 242. Package Structure and Vertical Slice Trade-off
+
+Advantages:
+
+```text
+High locality
+Feature ownership
+Independent evolution
+```
+
+Costs:
+
+```text
+Potential duplication
+More directories
+Shared domain concepts need careful placement
+```
+
+Choose based on complexity.
+
+---
+
+# 243. Package Structure and Hybrid Organization
+
+A mature feature can combine:
+
+```text
+orders/
+├── domain/
+├── data/
+├── create/
+├── details/
+├── cancellation/
+└── navigation/
+```
+
+The structure should follow actual architecture rather than ideology.
+
+---
+
+# 244. Package Structure and Package-by-Change
+
+A useful question:
+
+> Which files usually change together?
+
+If:
+
+```text
+OrderDetailsScreen
+OrderDetailsViewModel
+OrderDetailsUiState
+```
+
+change together, placing them together can reduce navigation.
+
+---
+
+# 245. Package Structure and Change Coupling
+
+If:
+
+```text
+OrderDto
+OrderMapper
+OrderApi
+```
+
+always change together, keeping them under:
+
+```text
+data/remote
+```
+
+can be useful.
+
+---
+
+# 246. Package Structure and Stable Core
+
+If:
+
+```text
+NetworkConfig
+HttpClientFactory
+NetworkError
+```
+
+are stable infrastructure concepts, keep them under:
+
+```text
+core/network
+```
+
+rather than duplicating them across features.
+
+---
+
+# 247. Package Structure and Dependency Weight
+
+A package should not import a huge amount of unrelated code.
+
+If:
+
+```text
+orders.domain
+```
+
+imports:
+
+```text
+Compose
+Android
+Firebase
+Database
+```
+
+the package boundary is not protecting the domain.
+
+---
+
+# 248. Package Structure and Import Review
+
+A quick review technique:
+
+Look at imports.
+
+For:
+
+```text
+domain
+```
+
+you should generally see:
+
+```text
+Kotlin
+Shared domain abstractions
+Small common libraries
+```
+
+not:
+
+```text
+Android
+Compose
+Vendor SDKs
+UI frameworks
+```
+
+---
+
+# 249. Package Structure and Architecture Smell
+
+If the package name says:
+
+```text
+domain
+```
+
+but the imports say:
+
+```text
+android.*
+androidx.compose.*
+com.google.firebase.*
+```
+
+the architecture is lying.
+
+Packages should reflect reality.
+
+---
+
+# 250. Package Structure and Architecture Honesty
+
+Good architecture has alignment:
+
+```text
+Name
++
+Location
++
+Visibility
++
+Dependencies
++
+Ownership
+```
+
+all tell the same story.
+
+---
+
+# 251. Package Structure and Review Checklist
+
+When reviewing a package:
+
+```text
+[ ] Does the package have one clear purpose?
+[ ] Do classes share a reason to change?
+[ ] Is ownership obvious?
+[ ] Is the name semantic?
+[ ] Are dependencies appropriate?
+[ ] Are platform APIs isolated?
+[ ] Are feature boundaries respected?
+[ ] Is the package too deep?
+[ ] Is it too broad?
+[ ] Does it need a module instead?
+```
+
+---
+
+# 252. Package Creation Checklist
+
+Before creating a new package:
+
+```text
+1. What concept does it represent?
+2. Who owns it?
+3. What classes belong together?
+4. Will the package improve discoverability?
+5. Is a module actually required?
+6. Is the package likely to grow?
+7. Does it reflect business language?
+```
+
+---
+
+# 253. Package Removal Checklist
+
+Remove a package when:
+
+```text
+It contains one unrelated class
+Its boundary is no longer meaningful
+Its contents belong to another package
+It only exists because of historical structure
+It increases navigation without adding clarity
+```
+
+---
+
+# 254. Package Refactoring Checklist
+
+When reorganizing:
+
+```text
+[ ] Identify semantic ownership
+[ ] Group related behavior
+[ ] Move classes
+[ ] Update imports
+[ ] Review visibility
+[ ] Review dependencies
+[ ] Update tests
+[ ] Update documentation
+[ ] Check generated code
+[ ] Run architecture tests
+```
+
+---
+
+# 255. Package Decision Matrix
+
+| Situation | Package | Module |
+|---|---:|---:|
+| Improve code organization | ✅ | |
+| Group related classes | ✅ | |
+| Create dependency boundary | | ✅ |
+| Independent build boundary | | ✅ |
+| Independent ownership | | ✅ |
+| Hide implementation with `internal` | ✅ | |
+| Public API boundary | Possible | Strong |
+| Cross-team reuse | Possible | Usually better |
+| Vendor isolation | Possible | Often better |
+| Feature isolation | Limited | Strong |
+
+---
+
+# 256. Package vs Module Decision Tree
+
+```text
+Need to organize related code?
+          │
+         Yes
+          │
+          ▼
+Does it need independent dependency/build isolation?
+          │
+      ┌───┴───┐
+     No       Yes
+      │         │
+      ▼         ▼
+   Package    Module
+```
+
+Simple, but extremely useful.
+
+---
+
+# 257. Package vs Module Mental Model
+
+```text
+PACKAGE
+   ↓
+"Where does this code belong?"
+
+MODULE
+   ↓
+"Who is allowed to depend on this?"
+```
+
+This distinction prevents many architectural mistakes.
+
+---
+
+# 258. Package Structure and KMP Modules
+
+A KMP module:
+
+```text
+features/orders
+```
+
+may contain:
+
+```text
+commonMain
+    com.example.orders.domain
+    com.example.orders.data
+    com.example.orders.presentation
+
+androidMain
+    com.example.orders.platform
+
+iosMain
+    com.example.orders.platform
+```
+
+The module defines:
+
+```text
+Feature boundary
+```
+
+The packages define:
+
+```text
+Internal structure
+```
+
+---
+
+# 259. Package Structure and Shared Modules
+
+A shared module:
+
+```text
+core/network
+```
+
+may contain:
+
+```text
+com.example.core.network.client
+com.example.core.network.config
+com.example.core.network.error
+```
+
+It does not need to expose:
+
+```text
+every internal package
+```
+
+---
+
+# 260. Package Structure and Public API
+
+A mature shared module might expose:
+
+```text
+com.example.core.network
+```
+
+while implementation details remain:
+
+```text
+com.example.core.network.internal
+```
+
+For example:
+
+```kotlin
+public interface NetworkClient
+
+internal class KtorNetworkClient
+```
+
+---
+
+# 261. Package Structure and `internal` Package
+
+An explicit:
+
+```text
+internal/
+```
+
+package can be useful for discoverability:
+
+```text
+network/
+├── NetworkClient.kt
+└── internal/
+    ├── KtorNetworkClient.kt
+    └── RetryInterceptor.kt
+```
+
+But remember:
+
+```text
+internal package name
+```
+
+does not enforce visibility.
+
+Use:
+
+```kotlin
+internal
+```
+
+when enforcement matters.
+
+---
+
+# 262. Package Structure and API Package
+
+Similarly:
+
+```text
+network/
+├── api/
+│   └── NetworkClient.kt
+└── internal/
+    ├── KtorNetworkClient.kt
+    └── NetworkClientFactory.kt
+```
+
+This can make a public library easier to navigate.
+
+---
+
+# 263. Package Structure and Library Design
+
+Published KMP libraries benefit from deliberate packages:
+
+```text
+library/
+├── api/
+├── model/
+└── internal/
+```
+
+Consumers should not need to depend on internal implementation packages.
+
+---
+
+# 264. Package Structure and API Evolution
+
+When implementation changes:
+
+```text
+internal
+```
+
+can change freely.
+
+The stable API:
+
+```text
+api
+```
+
+should change deliberately.
+
+This reduces compatibility cost.
+
+---
+
+# 265. Package Structure and Documentation
+
+A package-level README can be useful for large areas:
+
+```text
+orders/domain/README.md
+```
+
+describing:
+
+```text
+Business responsibility
+Dependencies
+Non-goals
+Examples
+```
+
+Do not add READMEs everywhere.
+
+Use them where complexity warrants.
+
+---
+
+# 266. Package Structure and Architecture Diagrams
+
+A package diagram might show:
+
+```text
+orders
+│
+├── presentation
+│       │
+│       ▼
+├── domain ◄──────── data
+│
+└── navigation
+```
+
+This is more useful than a diagram showing every class.
+
+---
+
+# 267. Package Structure and Diagram Granularity
+
+Architecture diagrams should match the level being discussed.
+
+```text
+Repository diagram
+→ Modules
+
+Feature diagram
+→ Packages
+
+Domain diagram
+→ Classes
+```
+
+Do not mix all levels into one unreadable diagram.
+
+---
+
+# 268. Package Structure and Documentation Levels
+
+A good documentation hierarchy:
+
+```text
+README
+  ↓
+Module documentation
+  ↓
+Package documentation
+  ↓
+Class documentation
+```
+
+Each level explains only what is necessary.
+
+---
+
+# 269. Package Structure and Onboarding
+
+A new engineer can navigate:
+
+```text
+features/orders
+```
+
+and discover:
+
+```text
+domain
+data
+presentation
+navigation
+```
+
+without needing to understand the entire repository.
+
+This is a major productivity benefit.
+
+---
+
+# 270. Package Structure and Cognitive Load
+
+Good packages reduce:
+
+```text
+Search space
+Dependency uncertainty
+Ownership ambiguity
+```
+
+Bad packages increase:
+
+```text
+"Where is this?"
+"Who owns this?"
+"Can I use this?"
+"Why does this depend on that?"
+```
+
+---
+
+# 271. Package Structure and Architecture Quality
+
+Package quality can be evaluated by:
+
+```text
+Discoverability
+Cohesion
+Semantic naming
+Dependency clarity
+Ownership clarity
+Change locality
+```
+
+not by:
+
+```text
+Number of packages
+```
+
+---
+
+# 272. Package Structure and Module Quality
+
+Likewise, module quality is not:
+
+```text
+Number of modules
+```
+
+It is:
+
+```text
+Meaningful boundaries
++
+Controlled dependencies
++
+Build isolation
++
+Ownership
+```
+
+Packages and modules solve different problems.
+
+---
+
+# 273. Package Structure and the DRY Trap
+
+Do not force identical code into one package just to satisfy:
+
+```text
+DRY
+```
+
+DRY should reduce harmful duplication.
+
+It should not create semantic coupling.
+
+---
+
+# 274. Package Structure and Reuse Decision
+
+Ask:
+
+```text
+Is the behavior reusable?
+```
+
+Then:
+
+```text
+Is the meaning reusable?
+```
+
+Then:
+
+```text
+Is the ownership reusable?
+```
+
+Only then consider sharing.
+
+---
+
+# 275. Package Structure and Copy-Paste
+
+A small amount of duplication can preserve:
+
+```text
+Feature autonomy
+```
+
+For example:
+
+```text
+OrderStatusUiModel
+PaymentStatusUiModel
+```
+
+may intentionally be separate even if their structures look similar.
+
+---
+
+# 276. Package Structure and Bounded Contexts
+
+Packages are excellent for representing bounded contexts:
+
+```text
+orders/
+payments/
+inventory/
+identity/
+```
+
+Each context can define its own:
+
+```text
+Models
+Policies
+Services
+Errors
+Events
+```
+
+without creating a global model namespace.
+
+---
+
+# 277. Package Structure and Context-Specific Models
+
+For example:
+
+```text
+orders/domain/model/Customer.kt
+payments/domain/model/BillingCustomer.kt
+profile/domain/model/CustomerProfile.kt
+```
+
+These names can coexist because package context provides meaning.
+
+---
+
+# 278. Package Structure and Model Name Collisions
+
+Two classes can both be named:
+
+```text
+Customer
+```
+
+if their packages differ:
+
+```text
+orders.domain.model.Customer
+payments.domain.model.Customer
+```
+
+This is not necessarily a problem.
+
+The package communicates context.
+
+---
+
+# 279. Package Structure and Imports
+
+If name collisions become frequent:
+
+```kotlin
+import orders.domain.model.Customer
+import payments.domain.model.Customer
+```
+
+consider whether:
+
+```text
+Customer
+```
+
+is actually too generic.
+
+Better domain names can reduce ambiguity:
+
+```text
+OrderCustomer
+BillingCustomer
+```
+
+when appropriate.
+
+---
+
+# 280. Package Structure and Package Aliases
+
+Kotlin supports import aliases:
+
+```kotlin
+import orders.domain.model.Customer as OrderCustomer
+```
+
+This can be useful, but should not be a substitute for clear domain modeling.
+
+---
+
+# 281. Package Structure and Shared Domain
+
+A genuinely shared value object:
+
+```text
+core/domain/money
+```
+
+can be imported by multiple contexts.
+
+But do not create:
+
+```text
+core/domain
+```
+
+containing every domain model in the application.
+
+---
+
+# 282. Package Structure and Core Domain
+
+The word:
+
+```text
+core
+```
+
+must remain meaningful.
+
+A healthy Core might contain:
+
+```text
+network
+security
+database
+observability
+time
+concurrency
+```
+
+plus a small number of truly shared domain primitives.
+
+---
+
+# 283. Package Structure and Core Package Growth
+
+Watch:
+
+```text
+core/
+├── models/
+├── utils/
+├── helpers/
+├── services/
+├── managers/
+└── business/
+```
+
+This is usually a sign that Core has become a dumping ground.
+
+Split by capability.
+
+---
+
+# 284. Package Structure and Shared Module Package Tree
+
+Good:
+
+```text
+core/
+├── network/
+│   ├── client/
+│   ├── config/
+│   └── error/
+│
+├── security/
+│   ├── auth/
+│   ├── storage/
+│   └── crypto/
+│
+└── observability/
+    ├── logging/
+    ├── analytics/
+    └── metrics/
+```
+
+Each package communicates a responsibility.
+
+---
+
+# 285. Package Structure and Feature Package Tree
+
+Good:
+
+```text
+features/orders/
+├── api/
+├── domain/
+│   ├── model/
+│   ├── repository/
+│   └── policy/
+├── data/
+│   ├── remote/
+│   ├── local/
+│   ├── mapper/
+│   └── repository/
+├── presentation/
+│   ├── list/
+│   ├── details/
+│   └── components/
+└── navigation/
+```
+
+This is readable without being excessively granular.
+
+---
+
+# 286. Package Structure and Large Feature Tree
+
+For a very large feature:
+
+```text
+orders/
+├── create/
+│   ├── domain/
+│   ├── data/
+│   └── presentation/
+│
+├── cancellation/
+│   ├── domain/
+│   └── presentation/
+│
+├── fulfillment/
+│   ├── domain/
+│   ├── data/
+│   └── presentation/
+│
+└── tracking/
+    ├── domain/
+    ├── data/
+    └── presentation/
+```
+
+This can be a better structure than one giant `orders/domain`.
+
+---
+
+# 287. Package Structure and Complexity-Driven Design
+
+There is no universal:
+
+```text
+correct package tree
+```
+
+The correct structure depends on:
+
+```text
+Feature complexity
+Team size
+Change frequency
+Platform count
+Reuse
+Ownership
+Build boundaries
+```
+
+---
+
+# 288. Package Structure and Small KMP App
+
+For a small app:
+
+```text
+shared/
+└── src/commonMain/
+    └── com/example/app/
+        ├── data/
+        ├── domain/
+        └── presentation/
+```
+
+This may be enough.
+
+Do not introduce:
+
+```text
+30 feature modules
+```
+
+for a simple application.
+
+---
+
+# 289. Package Structure and Medium KMP App
+
+For a medium application:
+
+```text
+features/
+├── orders/
+├── payments/
+└── profile/
+
+core/
+├── network/
+├── database/
+└── security/
+```
+
+Each module has semantic packages.
+
+---
+
+# 290. Package Structure and Large KMP App
+
+For a large enterprise application:
+
+```text
+apps/
+features/
+core/
+platform/
+contracts/
+integrations/
+design-system/
+testing/
+build-logic/
+```
+
+Inside each:
+
+```text
+Semantic packages
+```
+
+provide internal organization.
+
+---
+
+# 291. Package Structure and Enterprise Mental Model
+
+Think:
+
+```text
+Repository
+   │
+   ▼
+Modules
+   │
+   ▼
+Business / Capability Boundaries
+   │
+   ▼
+Packages
+   │
+   ▼
+Implementation
+```
+
+Modules answer:
+
+```text
+Who depends on whom?
+```
+
+Packages answer:
+
+```text
+Where does this behavior belong?
+```
+
+---
+
+# 292. Package Structure and Architecture Governance
+
+A mature organization can define package conventions:
+
+```text
+feature/
+    api/
+    domain/
+    data/
+    presentation/
+    navigation/
+
+core/
+    capability-specific packages
+
+platform/
+    capability-specific packages
+```
+
+These conventions improve consistency.
+
+But conventions should remain guidelines rather than forcing unnecessary structure.
+
+---
+
+# 293. Package Structure and Automated Rules
+
+Useful architecture checks can enforce:
+
+```text
+domain cannot import presentation
+domain cannot import Android SDK
+core cannot import features
+features cannot import internal packages of other features
+platform implementations cannot leak into commonMain
+```
+
+Packages provide the vocabulary.
+
+Tools provide enforcement.
+
+---
+
+# 294. Package Structure and Import Boundaries
+
+Example rule:
+
+```text
+com.example.orders.domain
+```
+
+may depend on:
+
+```text
+com.example.orders.domain.*
+com.example.core.domain.*
+```
+
+but not:
+
+```text
+com.example.orders.presentation.*
+android.*
+androidx.compose.*
+```
+
+The exact allowed graph depends on the architecture.
+
+---
+
+# 295. Package Structure and Architecture Tests
+
+Architecture tests should validate:
+
+```text
+Intent
+```
+
+not every file path.
+
+For example:
+
+```text
+Domain must not depend on Presentation.
+```
+
+This remains useful even if packages are reorganized.
+
+---
+
+# 296. Package Structure and Refactoring Safety
+
+When architecture rules are automated:
+
+```text
+Package refactoring
+```
+
+becomes safer because the build can tell you when a dependency rule is violated.
+
+---
+
+# 297. Package Structure and Static Analysis
+
+Static analysis can detect:
+
+```text
+Cycles
+Forbidden dependencies
+Android API usage
+Unused public APIs
+Visibility issues
+```
+
+This helps maintain package architecture at scale.
+
+---
+
+# 298. Package Structure and Dependency Cycles
+
+A package cycle:
+
+```text
+orders.domain
+   ↓
+orders.data
+   ↓
+orders.domain
+```
+
+may be acceptable in some implementations because data implements domain interfaces.
+
+But:
+
+```text
+domain → data
+```
+
+is generally a dependency direction warning in Clean Architecture.
+
+Use interfaces to invert the dependency where needed.
+
+---
+
+# 299. Package Structure and Dependency Inversion
+
+```text
+domain
+   │
+   └── OrderRepository
+            ▲
+            │
+         data
+   └── OrderRepositoryImpl
+```
+
+The package layout makes this relationship understandable.
+
+---
+
+# 300. Package Structure and Data Mapping
+
+```text
+data.remote
+      │
+      ▼
+data.mapper
+      │
+      ▼
+domain.model
+```
+
+The mapper is the translation boundary.
+
+---
+
+# 301. Package Structure and UI Mapping
+
+Similarly:
+
+```text
+domain.model
+      │
+      ▼
+presentation.mapper
+      │
+      ▼
+presentation.model
+```
+
+when UI models provide value.
+
+Do not introduce UI models automatically if the domain model is already an appropriate UI contract.
+
+---
+
+# 302. Package Structure and Simplicity
+
+Architecture should not become:
+
+```text
+Domain
+→ Mapper
+→ DTO
+→ Entity
+→ Repository
+→ Adapter
+→ Wrapper
+→ Facade
+```
+
+for every single property.
+
+Introduce boundaries when they solve real problems.
+
+---
+
+# 303. Package Structure and Practicality
+
+A useful principle:
+
+> **The package tree should make the common path obvious.**
+
+If developers need to open:
+
+```text
+12 packages
+```
+
+to understand one simple feature, the structure may be too fragmented.
+
+---
+
+# 304. Package Structure and Navigation Cost
+
+More packages mean:
+
+```text
+More navigation
+```
+
+Fewer packages mean:
+
+```text
+Potentially lower organization
+```
+
+The goal is the right balance.
+
+---
+
+# 305. Package Structure and Module Economics
+
+Think about:
+
+```text
+Module cost
+Package cost
+Cognitive cost
+Build cost
+Maintenance cost
+```
+
+A package is cheap.
+
+A Gradle module is more expensive.
+
+Use the stronger boundary only when the value justifies it.
+
+---
+
+# 306. Package Structure and Gradle Boundaries
+
+If the main reason is:
+
+```text
+"These classes look related."
+```
+
+use a package.
+
+If the reason is:
+
+```text
+"These classes must not depend on each other."
+```
+
+consider a module.
+
+---
+
+# 307. Package Structure and API Exposure
+
+A package can organize:
+
+```text
+Public
+Internal
+```
+
+but module boundaries provide stronger control.
+
+For reusable shared libraries:
+
+```text
+Module + `internal`
+```
+
+is usually more robust than package naming alone.
+
+---
+
+# 308. Package Structure and KMP Libraries
+
+A KMP library might expose:
+
+```text
+com.company.analytics.Analytics
+```
+
+while hiding:
+
+```text
+com.company.analytics.internal.*
+```
+
+The package structure is part of the library's user experience.
+
+---
+
+# 309. Package Structure and Semantic Versioning
+
+Once a package becomes part of a published API:
+
+```text
+Package name
++
+Class name
++
+Function signature
+```
+
+may become compatibility commitments.
+
+Be deliberate about what becomes public.
+
+---
+
+# 310. Package Structure and API Stability
+
+The more external consumers:
+
+```text
+More important
+```
+
+it becomes to maintain stable package names.
+
+Internal application packages can be refactored more freely.
+
+---
+
+# 311. Package Structure and Migration
+
+If package names must change:
+
+```text
+Old package
+   ↓
+Deprecated compatibility layer
+   ↓
+New package
+```
+
+may help published libraries.
+
+For internal applications, direct migration is often simpler.
+
+---
+
+# 312. Package Structure and Documentation Comments
+
+Public APIs should have useful documentation:
+
+```kotlin
+/**
+ * Provides secure application-level credential storage.
+ */
+interface SecureStorage
+```
+
+Package structure tells users:
+
+```text
+Where
+```
+
+documentation tells them:
+
+```text
+What
+```
+
+---
+
+# 313. Package Structure and Discoverability
+
+A developer should be able to predict the package before searching.
+
+For example:
+
+```text
+SecureStorage
+→ core.security.storage
+
+OrderCancellationPolicy
+→ orders.domain.policy
+
+OrderDto
+→ orders.data.remote
+```
+
+Predictability is a sign of good architecture.
+
+---
+
+# 314. Package Structure and Consistency
+
+If one feature uses:
+
+```text
+domain/
+data/
+presentation/
+```
+
+and another uses:
+
+```text
+business/
+repository/
+ui/
+```
+
+without a reason, developers must learn two conventions.
+
+Consistency reduces cognitive load.
+
+---
+
+# 315. Package Structure and Exceptions
+
+Consistency should not become dogma.
+
+If a feature is tiny:
+
+```text
+orders/
+├── Order.kt
+└── OrderRepository.kt
+```
+
+may be better than:
+
+```text
+orders/
+├── domain/
+│   ├── model/
+│   └── repository/
+```
+
+Architecture should serve the code.
+
+---
+
+# 316. Package Structure and Evolution
+
+Start simple:
+
+```text
+orders/
+```
+
+Add structure when complexity appears:
+
+```text
+orders/
+├── domain/
+└── data/
+```
+
+Then:
+
+```text
+orders/
+├── domain/
+│   ├── model/
+│   └── policy/
+└── data/
+    ├── remote/
+    └── local/
+```
+
+This is healthy incremental architecture.
+
+---
+
+# 317. Package Structure and Refactoring Trigger
+
+Split a package when:
+
+```text
+It becomes difficult to navigate
+Classes have different owners
+Classes change for unrelated reasons
+Dependencies become confusing
+Subdomain boundaries emerge
+```
+
+Do not split simply because a package has:
+
+```text
+20 files
+```
+
+File count alone is not enough.
+
+---
+
+# 318. Package Structure and Merge Conflicts
+
+Good package ownership can reduce merge conflicts because teams work in:
+
+```text
+Separate feature directories
+```
+
+rather than:
+
+```text
+Global services/
+Global models/
+Global managers/
+```
+
+---
+
+# 319. Package Structure and Parallel Development
+
+```text
+Orders Team
+└── features/orders
+
+Payments Team
+└── features/payments
+
+Platform Team
+└── core/network
+```
+
+Teams can work in parallel with fewer accidental collisions.
+
+---
+
+# 320. Package Structure and Team Autonomy
+
+A good package structure supports:
+
+```text
+Independent ownership
+Local testing
+Local reasoning
+Targeted reviews
+```
+
+This is particularly valuable in enterprise KMP.
+
+---
+
+# 321. Package Structure and Code Review Routing
+
+Code review can be automatically routed based on:
+
+```text
+Package path
+```
+
+For example:
+
+```text
+features/orders/**
+```
+
+goes to:
+
+```text
+Orders Team
+```
+
+This aligns repository structure with organizational structure.
+
+---
+
+# 322. Package Structure and On-Call
+
+During incidents:
+
+```text
+Package path
+```
+
+can help identify:
+
+```text
+Owning team
+Relevant subsystem
+Likely dependencies
+```
+
+This is another reason semantic organization matters.
+
+---
+
+# 323. Package Structure and Architecture Communication
+
+A package tree can often explain architecture without a diagram.
+
+For example:
+
+```text
+orders/
+├── domain/
+├── data/
+└── presentation/
+```
+
+immediately communicates:
+
+```text
+Business
+Persistence
+UI
+```
+
+---
+
+# 324. Package Structure and the "Open the Folder" Test
+
+A practical test:
+
+> Open the feature directory and look at it for five seconds.
+
+Can you answer:
+
+```text
+What does this feature own?
+Where is business logic?
+Where is data?
+Where is UI?
+```
+
+If yes, the package structure is doing its job.
+
+---
+
+# 325. Package Structure and the "Where Should I Put This?" Test
+
+A developer adds:
+
+```text
+OrderCancellationPolicy
+```
+
+If the architecture makes the answer obvious:
+
+```text
+orders/domain/policy
+```
+
+the structure is healthy.
+
+If the team debates:
+
+```text
+common?
+utils?
+services?
+managers?
+```
+
+the architecture needs clearer ownership.
+
+---
+
+# 326. Package Structure and the "Can I Import This?" Test
+
+A developer sees:
+
+```text
+orders.internal.OrderRepositoryImpl
+```
+
+and asks:
+
+> Can I use this?
+
+If the answer is unclear, visibility and API structure need improvement.
+
+---
+
+# 327. Package Structure and the "Why Does This Exist?" Test
+
+Every package should survive:
+
+```text
+Why does this package exist?
+```
+
+A good answer is:
+
+```text
+It groups Order cancellation policies.
+```
+
+A weak answer is:
+
+```text
+It contains things used by multiple classes.
+```
+
+---
+
+# 328. Package Structure and the "Who Owns This?" Test
+
+A good answer:
+
+```text
+Orders Team
+```
+
+or:
+
+```text
+Platform Team
+```
+
+A weak answer:
+
+```text
+Everyone
+```
+
+Shared ownership should be explicit.
+
+---
+
+# 329. Package Structure and the "What Changes Together?" Test
+
+If classes usually change together:
+
+```text
+Same package
+```
+
+may make sense.
+
+If they change independently:
+
+```text
+Separate packages
+```
+
+may be better.
+
+This is one of the most useful package design heuristics.
+
+---
+
+# 330. Package Structure and the "What Depends on What?" Test
+
+Package structure should make dependencies understandable:
+
+```text
+presentation → domain
+data → domain
+```
+
+If everything imports everything:
+
+```text
+Package organization is not enough.
+```
+
+The module architecture needs improvement.
+
+---
+
+# 331. Package Structure and the "What Is Shared?" Test
+
+A shared package should have:
+
+```text
+Explicit purpose
+```
+
+not:
+
+```text
+Accidental reuse
+```
+
+If code is shared because:
+
+```text
+"It was already there"
+```
+
+re-evaluate the boundary.
+
+---
+
+# 332. Package Structure and KMP Architecture
+
+The complete KMP hierarchy can be visualized:
+
+```text
+                       REPOSITORY
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+             APP        FEATURES       CORE
+                           │            │
+                           ▼            ▼
+                       PACKAGES      PACKAGES
+                           │            │
+                    ┌──────┼──────┐     │
+                    ▼      ▼      ▼     ▼
+                  DOMAIN  DATA  UI   PLATFORM
+                    │      │      │
+                    └──────┴──────┘
+                           │
+                         TYPES
+```
+
+Each layer solves a different problem.
+
+---
+
+# 333. The Package Mental Model
+
+Remember:
+
+```text
+MODULE
+=
+Who can depend on this?
+
+PACKAGE
+=
+Where does this code belong?
+
+CLASS
+=
+What behavior does it provide?
+```
+
+This simple model prevents overengineering.
+
+---
+
+# 334. Package Design Golden Rules
+
+```text
+1. Organize around meaning.
+2. Prefer feature-first organization for application code.
+3. Use packages for logical organization.
+4. Use modules for dependency and build boundaries.
+5. Keep domain, data, and presentation concepts distinguishable.
+6. Keep platform implementations isolated.
+7. Use `internal` to enforce module-level implementation boundaries.
+8. Avoid global `models`, `utils`, `helpers`, and `managers`.
+9. Keep feature-specific behavior near the feature.
+10. Keep shared capabilities in semantic shared modules.
+11. Organize UI by feature/screen when that improves locality.
+12. Keep DTOs near their data boundary.
+13. Keep UI models near presentation.
+14. Keep domain models near domain ownership.
+15. Do not create packages only because a pattern says so.
+16. Let package depth follow complexity.
+17. Use package boundaries to improve discoverability.
+18. Use modules or architecture tests when actual enforcement is required.
+19. Prefer stable package names for public libraries.
+20. Optimize for local reasoning and controlled change.
+```
+
+---
+
+# 335. Package Design Checklist
+
+Before committing a package structure:
+
+```text
+[ ] Does every package have a clear purpose?
+[ ] Does the name describe meaning?
+[ ] Is ownership obvious?
+[ ] Are related classes grouped?
+[ ] Are unrelated classes separated?
+[ ] Is package depth reasonable?
+[ ] Are platform APIs isolated?
+[ ] Are dependencies directional?
+[ ] Are public APIs intentional?
+[ ] Are internal details protected?
+[ ] Is a Gradle module actually needed?
+[ ] Does the structure support local reasoning?
+[ ] Does it support future modularization?
+[ ] Does it reduce navigation cost?
+[ ] Does it avoid generic dumping grounds?
+```
+
+---
+
+# 336. Common Mistakes
+
+## Mistake 1 — Global `models`
+
+```text
+models/
+├── User
+├── Order
+├── Payment
+└── Product
+```
+
+### Why it fails
+
+It hides business ownership and creates coupling.
+
+### Better
+
+```text
+orders/domain/model
+payments/domain/model
+profile/domain/model
+```
+
+or intentionally shared contracts.
+
+---
+
+## Mistake 2 — Global `utils`
+
+```text
+utils/
+```
+
+### Why it fails
+
+Everything can be placed there.
+
+### Better
+
+Use semantic packages:
+
+```text
+core/time
+core/localization
+orders/domain
+```
+
+---
+
+## Mistake 3 — Global `services`
+
+```text
+services/
+```
+
+### Why it fails
+
+It groups unrelated business capabilities.
+
+### Better
+
+```text
+orders/domain
+payments/domain
+core/network
+```
+
+depending on responsibility.
+
+---
+
+## Mistake 4 — Global `repositories`
+
+```text
+repositories/
+```
+
+### Why it fails
+
+It separates repository code from its business owner.
+
+### Better
+
+```text
+orders/domain/repository
+orders/data/repository
+```
+
+---
+
+## Mistake 5 — Global `viewmodels`
+
+```text
+viewmodels/
+```
+
+### Why it fails
+
+UI behavior becomes disconnected from features.
+
+### Better
+
+```text
+orders/presentation/order-details
+```
+
+---
+
+## Mistake 6 — Package Naming Used as Enforcement
+
+```text
+internal/
+```
+
+does not automatically make code internal.
+
+### Better
+
+Use:
+
+```kotlin
+internal
+```
+
+for actual visibility enforcement.
+
+---
+
+## Mistake 7 — Too Many Packages
+
+```text
+order/
+├── domain/
+├── domain-model/
+├── domain-model-value/
+├── domain-model-value-object/
+└── ...
+```
+
+### Why it fails
+
+Navigation becomes harder than the original problem.
+
+### Better
+
+Introduce packages when semantic boundaries actually appear.
+
+---
+
+## Mistake 8 — Too Few Packages
+
+```text
+orders/
+└── 300 Kotlin files
+```
+
+### Why it fails
+
+Ownership and responsibility become difficult to discover.
+
+### Better
+
+Split by meaningful concepts:
+
+```text
+domain
+data
+presentation
+navigation
+subdomains
+```
+
+---
+
+## Mistake 9 — Platform Leakage
+
+```text
+orders/domain
+└── AndroidContext.kt
+```
+
+### Why it fails
+
+Common business code becomes platform-dependent.
+
+### Better
+
+Use:
+
+```text
+platform capability
+```
+
+or:
+
+```text
+expect / actual
+```
+
+when appropriate.
+
+---
+
+## Mistake 10 — Cross-Feature Internal Imports
+
+```text
+payments
+   ↓
+orders.internal
+```
+
+### Why it fails
+
+Feature encapsulation is broken.
+
+### Better
+
+Expose a small feature API or shared contract.
+
+---
+
+## Mistake 11 — Global UI Components
+
+```text
+components/
+├── OrderCard
+├── PaymentCard
+├── ProfileHeader
+```
+
+### Why it fails
+
+Business-specific UI gets mixed together.
+
+### Better
+
+```text
+orders/presentation
+payments/presentation
+profile/presentation
+```
+
+and keep generic visual primitives in the design system.
+
+---
+
+## Mistake 12 — Global Events
+
+```text
+events/
+├── OrderCreated
+├── PaymentCompleted
+├── ProfileUpdated
+```
+
+### Why it fails
+
+It can become hidden coupling.
+
+### Better
+
+Define event ownership and semantics first.
+
+---
+
+## Mistake 13 — Package Names That Describe Technology Only
+
+```text
+processors/
+handlers/
+managers/
+```
+
+### Why it fails
+
+They hide business meaning.
+
+### Better
+
+Use:
+
+```text
+orders/cancellation
+payments/authorization
+inventory/replenishment
+```
+
+where appropriate.
+
+---
+
+## Mistake 14 — Treating Package Count as Architecture Quality
+
+```text
+500 packages = mature architecture
+```
+
+False.
+
+Quality comes from:
+
+```text
+Cohesion
++
+Coupling
++
+Ownership
++
+Change isolation
+```
+
+---
+
+## Mistake 15 — Creating Modules When Packages Are Enough
+
+If two classes only need logical grouping:
+
+```text
+Use a package.
+```
+
+Do not create:
+
+```text
+Gradle module
+```
+
+without a meaningful boundary.
+
+---
+
+# 337. A Practical Package Design Workflow
+
+When adding new code:
+
+```text
+Step 1
+Identify the business/capability owner.
+
+Step 2
+Identify whether it is:
+- Domain
+- Data
+- Presentation
+- Infrastructure
+- Platform
+- Contract
+
+Step 3
+Find the nearest semantic package.
+
+Step 4
+Check whether the package already has the same reason to change.
+
+Step 5
+If not, create a new package.
+
+Step 6
+If the code needs a dependency boundary, consider a module.
+
+Step 7
+Protect implementation with `internal`.
+
+Step 8
+Validate dependency direction.
+
+Step 9
+Add tests close to the package.
+
+Step 10
+Document unusual architectural decisions.
+```
+
+---
+
+# 338. Example: Adding Order Cancellation
+
+Requirement:
+
+```text
+Add order cancellation.
+```
+
+Start with ownership:
+
+```text
+Orders
+```
+
+Then responsibility:
+
+```text
+Business rule
+```
+
+Package:
+
+```text
+orders/domain/cancellation
+```
+
+Possible files:
+
+```text
+CancellationPolicy.kt
+CancelOrder.kt
+CancellationReason.kt
+```
+
+Presentation:
+
+```text
+orders/presentation/order-details/
+```
+
+Data:
+
+```text
+orders/data/remote/
+```
+
+The package structure follows the capability.
+
+---
+
+# 339. Example: Adding Secure Storage
+
+Requirement:
+
+```text
+Store authentication token securely.
+```
+
+Ownership:
+
+```text
+Security infrastructure
+```
+
+Package:
+
+```text
+core/security/storage
+```
+
+KMP source sets:
+
+```text
+commonMain
+androidMain
+iosMain
+```
+
+Platform implementation:
+
+```text
+Android → Keystore
+iOS → Keychain
+```
+
+The package communicates:
+
+```text
+Capability
+```
+
+not:
+
+```text
+Vendor implementation
+```
+
+---
+
+# 340. Example: Adding Analytics
+
+Requirement:
+
+```text
+Track order completed.
+```
+
+Generic mechanism:
+
+```text
+core/observability/analytics
+```
+
+Feature event:
+
+```text
+orders/analytics/OrderCompleted.kt
+```
+
+Vendor adapter:
+
+```text
+integrations/analytics/FirebaseAnalyticsAdapter.kt
+```
+
+This gives three clear responsibilities:
+
+```text
+Feature meaning
+Shared capability
+Vendor implementation
+```
+
+---
+
+# 341. Example: Adding a Button
+
+Requirement:
+
+```text
+Add a reusable button.
+```
+
+If it is:
+
+```text
+Generic visual component
+```
+
+place it in:
+
+```text
+design-system/button
+```
+
+If it is:
+
+```text
+Cancel Order business UI
+```
+
+place it in:
+
+```text
+orders/presentation
+```
+
+The package depends on semantic ownership.
+
+---
+
+# 342. Example: Adding a Date Formatter
+
+Requirement:
+
+```text
+Format an ISO date.
+```
+
+If generic:
+
+```text
+core/localization/date
+```
+
+may be appropriate.
+
+If:
+
+```text
+Format order delivery date
+```
+
+keep it near:
+
+```text
+orders
+```
+
+The same technical operation can have different architectural ownership.
+
+---
+
+# 343. Example: Adding a Retry Policy
+
+Requirement:
+
+```text
+Retry failed network requests.
+```
+
+Generic mechanism:
+
+```text
+core/network/retry
+```
+
+Business decision:
+
+```text
+Should payment authorization be retried?
+```
+
+belongs to:
+
+```text
+payments
+```
+
+Infrastructure provides the mechanism.
+
+Business owns the policy.
+
+---
+
+# 344. Final KMP Package Architecture
+
+A mature KMP project can be understood as:
+
+```text
+                         KMP REPOSITORY
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        ▼                      ▼                      ▼
+      APPS                  FEATURES                  CORE
+        │                      │                      │
+        │             ┌────────┼────────┐       ┌─────┼─────┐
+        │             ▼        ▼        ▼       ▼     ▼     ▼
+        │           Orders   Payments  Profile  Net  Sec   DB
+        │             │        │        │
+        │             └────────┼────────┘
+        │                      │
+        │                 PACKAGES
+        │                      │
+        │        ┌─────────────┼─────────────┐
+        │        ▼             ▼             ▼
+        │      DOMAIN         DATA      PRESENTATION
+        │        │             │             │
+        │        ▼             ▼             ▼
+        │     Business      Sources         UI
+        │      Rules        & Mapping      State
+        │
+        └─────────────────────────────────────────────
+```
+
+The important hierarchy is:
+
+```text
+Repository
+    ↓
+Module
+    ↓
+Feature / Capability
+    ↓
+Package
+    ↓
+Type
+```
+
+And the responsibility of each level is different:
+
+```text
+Module
+→ Controls dependency/build boundaries
+
+Feature
+→ Owns business capability
+
+Package
+→ Organizes related implementation
+
+Class
+→ Implements behavior
+```
+
+---
+
+# 345. The Final Mental Model
+
+When deciding where code belongs, ask these questions in order:
+
+```text
+1. What does this code mean?
+             ↓
+2. Who owns that meaning?
+             ↓
+3. Is it feature-specific or shared?
+             ↓
+4. Which module should own it?
+             ↓
+5. Which package best represents its responsibility?
+             ↓
+6. What should be public?
+             ↓
+7. What should remain internal?
+             ↓
+8. What dependencies are allowed?
+```
+
+This prevents the common mistake of starting with:
+
+```text
+"What folder should I put this file in?"
+```
+
+Architecture should begin with:
+
+```text
+"What does this code belong to?"
+```
+
+---
+
+# 346. Final Takeaways
+
+Packages are not merely folders.
+
+They are part of the architecture's **language**.
+
+A good KMP package structure makes:
+
+```text
+Business ownership
+Dependency direction
+Platform boundaries
+Feature boundaries
+Code discoverability
+Change locality
+```
+
+visible to developers.
+
+The strongest package architecture usually follows:
+
+```text
+                  BUSINESS
+                     │
+                     ▼
+                  FEATURE
+                     │
+                     ▼
+                  PACKAGE
+                     │
+          ┌──────────┼──────────┐
+          ▼          ▼          ▼
+       DOMAIN       DATA   PRESENTATION
+          │          │          │
+          ▼          ▼          ▼
+       Rules      Sources       UI
+```
+
+while shared infrastructure remains outside the feature:
+
+```text
+FEATURE
+   │
+   ▼
+SHARED CAPABILITY
+   │
+   ▼
+PLATFORM
+   │
+   ▼
+VENDOR
+```
+
+> [!IMPORTANT]
+> **Use modules to control dependencies. Use packages to organize meaning. Use visibility to protect implementation.**
+
+And the most important rule for KMP project structure is:
+
+> **Do not organize code merely by what it technically is. Organize it by what it means, who owns it, and how it changes.**
+
+That is what turns a package tree into an architectural map rather than just a collection of folders.
